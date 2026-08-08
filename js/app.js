@@ -1,0 +1,321 @@
+import { initMenu } from './ui/menu.js';
+import { initTeamSelect } from './ui/teamSelect.js';
+import { renderSwissStage } from './ui/swissView.js';
+import { renderGroupStage } from './ui/groupView.js';
+import { renderBracket } from './ui/bracketView.js';
+import { createGrandFinalMatch, simulateNextGrandFinalMap, simulateEntireGrandFinal } from './engine/grandFinals.js';
+import { renderGrandFinalModal } from './ui/grandFinalModal.js';
+
+const screens = ['menu', 'presets', 'team-select', 'tournament'];
+
+export function showScreen(screenId) {
+  screens.forEach(s => {
+    const el = document.getElementById(`screen-${s}`);
+    if (el) {
+      el.classList.toggle('hidden', s !== screenId);
+      if (s === screenId) {
+        el.classList.add('animate-fade-in');
+      }
+    }
+  });
+}
+
+export const appState = {
+  currentFormat: null,
+  selectedTeams: [],
+  tournament: null,
+  tournamentModule: null,
+  grandFinalState: null
+};
+
+export function setTheme(theme) {
+  document.body.className = `theme-${theme}`;
+}
+
+export function renderTournament() {
+  const t = appState.tournament;
+  if (!t) return;
+  
+  // Set theme based on tournament
+  setTheme(t.theme);
+  
+  document.getElementById('t-name').textContent = t.name;
+  
+  const logoImg = document.getElementById('t-banner-img');
+  if (logoImg) {
+    logoImg.src = t.theme === 'champions' ? 'assets/vct_logo.png' : 'assets/masters_logo.svg';
+  }
+
+  // Active viewing stage (defaults to current tournament stage if not set)
+  const viewingStage = t.viewingStage || t.stage;
+  
+  // Show readable stage label
+  const stageLabels = {
+    'swiss': 'SWISS STAGE',
+    'groups': 'GROUP STAGE',
+    'bracket': 'PLAYOFFS',
+    'complete': 'COMPLETE'
+  };
+  document.getElementById('t-stage-indicator').textContent = stageLabels[viewingStage] || viewingStage.toUpperCase();
+  
+  const content = document.getElementById('tournament-content');
+  content.innerHTML = '';
+  
+  // Render based on viewingStage
+  if (viewingStage === 'swiss' && t.swiss) {
+    renderSwissStage(content, t.swiss);
+  } else if (viewingStage === 'groups' && t.groups) {
+    renderGroupStage(content, t.groups);
+  } else if ((viewingStage === 'bracket' || viewingStage === 'complete') && t.bracket) {
+    renderBracket(content, t.bracket);
+  }
+  
+  // Check if stage is complete (Group or Swiss) but playoffs not started yet
+  let isStageComplete = false;
+  if (t.stage === 'groups' && t.groups && t.groups.every(g => g.phase === 'complete')) {
+    isStageComplete = true;
+  } else if (t.stage === 'swiss' && t.swiss && t.swiss.teams.filter(team => team.status === 'active').length === 0) {
+    isStageComplete = true;
+  }
+
+  // Update simulation button states
+  const simNext = document.getElementById('btn-sim-next');
+  const simStage = document.getElementById('btn-sim-stage');
+  const simAll = document.getElementById('btn-sim-all');
+  
+  // If user is currently viewing Groups/Swiss AFTER playoffs bracket has been generated:
+  if ((viewingStage === 'groups' || viewingStage === 'swiss') && t.bracket) {
+    simNext.textContent = 'VIEW PLAYOFFS';
+    simNext.classList.add('btn-proceed-highlight');
+    simNext.classList.remove('btn-sim-grand-final', 'btn-disabled');
+    simNext.disabled = false;
+
+    simStage.style.display = 'none';
+    simAll.style.display = 'none';
+    return;
+  }
+
+  // Check if Grand Final is ready to be simulated (only when stage is not complete yet)
+  const isGrandFinalReady = t.stage !== 'complete' && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2 && !t.bracket.grandFinal.played;
+
+  if (isGrandFinalReady) {
+    simNext.textContent = 'SIMULATE GRAND FINAL';
+    simNext.classList.add('btn-sim-grand-final');
+    simNext.classList.remove('btn-proceed-highlight', 'btn-disabled');
+    simNext.disabled = false;
+
+    simStage.style.display = 'none';
+    simAll.style.display = 'none';
+  } else {
+    simNext.textContent = 'Simulate Next';
+    simNext.classList.remove('btn-sim-grand-final', 'btn-proceed-highlight');
+    simStage.style.display = 'inline-flex';
+    simAll.style.display = 'inline-flex';
+
+    if (isStageComplete && !t.bracket) {
+      simNext.classList.add('btn-disabled');
+      simNext.disabled = true;
+
+      simStage.textContent = 'PROCEED TO PLAYOFFS';
+      simStage.classList.add('btn-proceed-highlight');
+      simStage.classList.remove('btn-disabled');
+      simStage.disabled = false;
+    } else {
+      simStage.textContent = 'Simulate Stage';
+      simStage.classList.remove('btn-proceed-highlight');
+
+      if (t.stage === 'complete') {
+        simNext.classList.add('btn-disabled');
+        simNext.disabled = true;
+        simStage.classList.add('btn-disabled');
+        simStage.disabled = true;
+        simAll.classList.add('btn-disabled');
+        simAll.disabled = true;
+      } else {
+        simNext.classList.remove('btn-disabled');
+        simNext.disabled = false;
+        simStage.classList.remove('btn-disabled');
+        simStage.disabled = false;
+        simAll.classList.remove('btn-disabled');
+        simAll.disabled = false;
+      }
+    }
+  }
+  
+  // Check for champion
+  if (t.champion && viewingStage === 'complete') {
+    const celeb = document.getElementById('champion-celebration');
+    document.getElementById('champion-team-name').textContent = t.champion.name;
+    
+    // Set subtitle based on tournament name with host city
+    const subtitleEl = celeb.querySelector('.champion-subtitle');
+    if (subtitleEl) {
+      subtitleEl.textContent = t.name || 'VCT CHAMPION';
+    }
+    
+    celeb.classList.remove('hidden');
+    
+    // Allow clicking celebration to dismiss
+    celeb.onclick = () => {
+      celeb.classList.add('hidden');
+    };
+  } else {
+    document.getElementById('champion-celebration').classList.add('hidden');
+  }
+}
+
+function handleGrandFinalCompletion() {
+  const gf = appState.grandFinalState;
+  if (!gf || !gf.isComplete || !appState.tournament) return;
+
+  const t = appState.tournament;
+  t.bracket.grandFinal.played = true;
+  t.bracket.grandFinal.team1Score = gf.team1MapsWon;
+  t.bracket.grandFinal.team2Score = gf.team2MapsWon;
+  t.bracket.grandFinal.winner = gf.winner;
+  t.bracket.champion = gf.winner;
+  t.champion = gf.winner;
+  t.stage = 'complete';
+  t.viewingStage = 'complete';
+
+  // Wait 1 second before closing modal and crowning champion
+  setTimeout(() => {
+    const gfModal = document.getElementById('modal-grand-finals');
+    if (gfModal) gfModal.classList.remove('active');
+    renderTournament();
+  }, 1000);
+}
+
+function initTournamentControls() {
+  document.getElementById('btn-t-back').addEventListener('click', () => {
+    document.getElementById('champion-celebration').classList.add('hidden');
+    const gfModal = document.getElementById('modal-grand-finals');
+    if (gfModal) gfModal.classList.remove('active');
+
+    const t = appState.tournament;
+    if (t && t.bracket && (t.viewingStage === 'bracket' || t.viewingStage === 'complete' || !t.viewingStage)) {
+      // Switch view back to Groups/Swiss stage!
+      t.viewingStage = t.groups ? 'groups' : 'swiss';
+      renderTournament();
+    } else {
+      // Return to team select
+      if (t) t.viewingStage = null;
+      showScreen('team-select');
+    }
+  });
+  
+  // Simulate Next Step – advances one round/step OR opens Grand Finals modal OR toggles VIEW PLAYOFFS
+  document.getElementById('btn-sim-next').addEventListener('click', () => {
+    if (!appState.tournament) return;
+    const t = appState.tournament;
+    const viewingStage = t.viewingStage || t.stage;
+
+    // Handle VIEW PLAYOFFS click when inspecting Groups
+    if ((viewingStage === 'groups' || viewingStage === 'swiss') && t.bracket) {
+      t.viewingStage = t.stage === 'complete' ? 'complete' : 'bracket';
+      renderTournament();
+      return;
+    }
+
+    const isGrandFinalReady = t.stage !== 'complete' && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2 && !t.bracket.grandFinal.played;
+
+    if (isGrandFinalReady) {
+      // Open Grand Finals Modal
+      if (!appState.grandFinalState) {
+        appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
+      }
+      const gfModal = document.getElementById('modal-grand-finals');
+      if (gfModal) {
+        gfModal.classList.add('active');
+        renderGrandFinalModal(appState.grandFinalState, t.name);
+      }
+    } else if (appState.tournamentModule && t.stage !== 'complete') {
+      const result = appState.tournamentModule.simulateNextStep(appState.tournament);
+      appState.tournament = result.tournament;
+      renderTournament();
+    }
+  });
+
+  // Grand Finals Modal Controls
+  document.getElementById('btn-gf-sim-map').addEventListener('click', () => {
+    if (appState.grandFinalState && !appState.grandFinalState.isComplete) {
+      appState.grandFinalState = simulateNextGrandFinalMap(appState.grandFinalState);
+      renderGrandFinalModal(appState.grandFinalState, appState.tournament.name);
+      if (appState.grandFinalState.isComplete) {
+        handleGrandFinalCompletion();
+      }
+    }
+  });
+
+  document.getElementById('btn-gf-sim-game').addEventListener('click', () => {
+    if (appState.grandFinalState && !appState.grandFinalState.isComplete) {
+      appState.grandFinalState = simulateEntireGrandFinal(appState.grandFinalState);
+      renderGrandFinalModal(appState.grandFinalState, appState.tournament.name);
+      if (appState.grandFinalState.isComplete) {
+        handleGrandFinalCompletion();
+      }
+    }
+  });
+  
+  // Simulate Stage – advances current stage to completion (stops BEFORE playoffs so user sees complete groups!)
+  document.getElementById('btn-sim-stage').addEventListener('click', () => {
+    if (!appState.tournament || !appState.tournamentModule) return;
+    const t = appState.tournament;
+
+    let isStageComplete = false;
+    if (t.stage === 'groups' && t.groups && t.groups.every(g => g.phase === 'complete')) {
+      isStageComplete = true;
+    } else if (t.stage === 'swiss' && t.swiss && t.swiss.teams.filter(team => team.status === 'active').length === 0) {
+      isStageComplete = true;
+    }
+
+    if (isStageComplete && !t.bracket) {
+      // User clicked RED HIGHLIGHTED "PROCEED TO PLAYOFFS" button
+      appState.tournament = appState.tournamentModule.proceedToPlayoffs(appState.tournament);
+      renderTournament();
+      return;
+    }
+
+    // Simulate matches until current stage is complete or Grand Final is ready
+    let safety = 0;
+    while (safety < 100) {
+      const isGFReady = appState.tournament.bracket && 
+                        appState.tournament.bracket.grandFinal && 
+                        appState.tournament.bracket.grandFinal.team1 && 
+                        appState.tournament.bracket.grandFinal.team2 && 
+                        !appState.tournament.bracket.grandFinal.played;
+
+      const checkDone = (appState.tournament.stage === 'groups' && appState.tournament.groups.every(g => g.phase === 'complete')) ||
+                        (appState.tournament.stage === 'swiss' && appState.tournament.swiss.teams.filter(team => team.status === 'active').length === 0) ||
+                        isGFReady ||
+                        appState.tournament.stage === 'complete';
+      if (checkDone) break;
+
+      const result = appState.tournamentModule.simulateNextStep(appState.tournament);
+      appState.tournament = result.tournament;
+      safety++;
+    }
+
+    renderTournament();
+  });
+  
+  // Simulate All – runs the entire tournament to completion (skips everything directly to champion coronation banner!)
+  document.getElementById('btn-sim-all').addEventListener('click', () => {
+    if (!appState.tournament || !appState.tournamentModule) return;
+    if (appState.tournament.stage !== 'complete') {
+      const result = appState.tournamentModule.simulateAll(appState.tournament);
+      appState.tournament = result.tournament;
+      appState.tournament.viewingStage = 'complete';
+      renderTournament();
+    }
+  });
+}
+
+function init() {
+  initMenu();
+  initTeamSelect();
+  initTournamentControls();
+  showScreen('menu');
+}
+
+document.addEventListener('DOMContentLoaded', init);

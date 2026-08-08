@@ -1,0 +1,242 @@
+/* GSL Group Stage Layout - No Scrolling Viewport Fit */
+.groups-container {
+  width: 100%;
+  max-width: 1750px;
+  margin: 0 auto;
+  padding: 0.25rem 0.8rem;
+  height: calc(100vh - 145px);
+  max-height: calc(100vh - 145px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.groups-viewport-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1rem;
+  flex: 1;
+  height: 100%;
+}
+
+/* Group Card Box */
+.group-card {
+  background: #151515;
+  border: 2px solid #bdb578;
+  border-radius: 2px;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-masters .group-card {
+  background: #111822;
+  border-color: #6f4acd;
+}
+
+.group-card-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(189, 181, 120, 0.2);
+}
+
+.group-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #da322e;
+  margin: 0;
+  text-shadow: 0 0 15px rgba(218, 50, 46, 0.4);
+}
+
+body.theme-champions .group-card-title {
+  color: #da322e;
+  text-shadow: 0 0 15px rgba(218, 50, 46, 0.4);
+}
+
+body.theme-masters .group-card-title {
+  color: #6f4acd;
+  text-shadow: 0 0 15px rgba(111, 74, 205, 0.4);
+}
+
+/* Pick'em / VLR Style GSL Bracket Grid (Matching Mockup Image 1) */
+.gsl-bracket-flow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 90px;
+  gap: 0.8rem;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+/* Columns */
+.gsl-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+}
+
+/* Match Card Box (Matching Mockup Image 2) */
+.gsl-match-box {
+  background: #1c1c1c;
+  border: 2px solid #2d2d2d;
+  border-left: 4px solid #bdb578;
+  border-radius: 2px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 48px;
+  position: relative;
+  transition: border-color 0.2s ease;
+}
+
+body.theme-masters .gsl-match-box {
+  border-left-color: #6f4acd;
+}
+
+.gsl-match-box.active-match {
+  border-color: #bdb578;
+  box-shadow: 0 0 15px rgba(189, 181, 120, 0.3);
+}
+
+.gsl-match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.2rem;
+}
+
+.gsl-match-row:first-child {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.gsl-team-name {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #ece7e1;
+}
+
+.gsl-team-name.winner-text {
+  color: #bdb578;
+  font-weight: 900;
+}
+
+body.theme-masters .gsl-team-name.winner-text {
+  color: #a07cf0;
+}
+
+.gsl-score-num {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: #ece7e1;
+  min-width: 16px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.gsl-score-num.winner-score {
+  color: #bdb578;
+}
+
+body.theme-masters .gsl-score-num.winner-score {
+  color: #a07cf0;
+}
+
+/* Far-Right Qualified Seed Boxes (Matching Mockup 1: "3" and "4" / 1st and 2nd seeds) */
+.gsl-qualified-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 100%;
+}
+
+.gsl-seed-box {
+  background: #1c1c1c;
+  border: 2px solid #bdb578;
+  border-radius: 2px;
+  height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(189, 181, 120, 0.2);
+}
+
+body.theme-masters .gsl-seed-box {
+  border-color: #6f4acd;
+  box-shadow: 0 0 10px rgba(111, 74, 205, 0.2);
+}
+
+.gsl-seed-box .seed-lbl {
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #bdb578;
+  text-transform: uppercase;
+}
+
+body.theme-masters .gsl-seed-box .seed-lbl {
+  color: #6f4acd;
+}
+
+.gsl-seed-box .seed-team-tag {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #ece7e1;
+}
+
+/* Completed Group Red Border Styling */
+.group-card.group-complete {
+  border-color: #da322e !important;
+  box-shadow: 0 0 22px rgba(218, 50, 46, 0.45) !important;
+}
+
+body.theme-masters .group-card.group-complete {
+  border-color: #ffffff !important;
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Completed Match Red Border Styling */
+.gsl-match-box.match-played {
+  border-color: #da322e !important;
+  border-left-color: #da322e !important;
+  box-shadow: 0 0 12px rgba(218, 50, 46, 0.25);
+}
+
+body.theme-masters .gsl-match-box.match-played {
+  border-color: #ffffff !important;
+  border-left-color: #ffffff !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Losing Team Desaturated + Strikethrough */
+.gsl-team-name.loser-text {
+  opacity: 0.4;
+  text-decoration: line-through;
+  color: #888888;
+}
+
+.gsl-score-num.loser-score {
+  opacity: 0.4;
+  color: #888888;
+}

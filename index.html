@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VCT Event Simulator - Simulate Valorant Champions Tour Events">
+  <title>VCT Event Simulator</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/swiss.css">
+  <link rel="stylesheet" href="css/bracket.css">
+  <link rel="stylesheet" href="css/groups.css">
+</head>
+<body class="theme-champions">
+  <div id="app">
+    
+    <!-- MAIN MENU SCREEN -->
+    <div id="screen-menu" class="menu-container">
+      <div class="menu-bg-wrapper"></div>
+      
+      <div class="menu-hero">
+        <div class="vct-logo-area">
+          <img src="assets/vct_logo.png" alt="VCT Logo" class="vct-logo-img">
+        </div>
+        <h1 class="menu-title">VALORANT MATCH SIMULATOR</h1>
+      </div>
+
+      <!-- Main Buttons (Mockup Style) -->
+      <div id="main-menu-nav" class="main-menu-buttons">
+        <button id="btn-menu-presets" class="main-nav-btn btn-presets">
+          <span>PRESETS</span>
+        </button>
+        <button id="btn-menu-sandbox" class="main-nav-btn btn-sandbox">
+          <span>SANDBOX MODE</span>
+          <span class="badge-coming-soon">COMING SOON</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PRESETS SELECTION SCREEN (Dedicated New Screen) -->
+    <div id="screen-presets" class="menu-container hidden">
+      <div class="menu-bg-wrapper"></div>
+      
+      <div class="presets-nav-bar">
+        <button id="btn-presets-back" class="btn-back">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>BACK</span>
+        </button>
+      </div>
+
+      <div class="presets-screen-header">
+        <h2 class="presets-screen-title">SELECT EVENT</h2>
+      </div>
+
+      <div class="event-presets-grid">
+        <!-- MASTERS CARD -->
+        <div class="event-preset-card preset-masters" data-type="masters">
+          <div class="preset-card-logo">
+            <img src="assets/masters_logo.svg" alt="VCT Masters Logo" class="preset-logo-img">
+          </div>
+          <h3 class="preset-card-title">VCT MASTERS</h3>
+          <p class="preset-card-desc">Mid-season global battlegrounds where regional titans clash for international glory and trophy contention.</p>
+        </div>
+
+        <!-- CHAMPIONS CARD -->
+        <div class="event-preset-card preset-champions" data-type="champions">
+          <div class="preset-card-logo">
+            <img src="assets/vct_logo.png" alt="VCT Champions Logo" class="preset-logo-img">
+          </div>
+          <h3 class="preset-card-title">VCT CHAMPIONS</h3>
+          <p class="preset-card-desc">The final event of the year. All or nothing — the ultimate pinnacle where legendary champions are crowned.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MASTERS FORMAT SELECTION MODAL -->
+    <div id="modal-masters-choice" class="modal-overlay">
+      <div class="modal-content animate-slide-up">
+        <div class="modal-header">
+          <h3>SELECT MASTERS FORMAT</h3>
+          <button id="btn-close-masters-modal" class="btn-close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+        <p class="modal-subtitle">Choose team bracket size for Masters</p>
+        <div class="masters-choice-grid">
+          <button class="masters-choice-btn" data-format="masters8">
+            <span class="choice-title">8 TEAMS</span>
+            <span class="choice-desc">Swiss Stage into 4-Team Double Elimination Playoffs</span>
+          </button>
+          <button class="masters-choice-btn" data-format="masters12">
+            <span class="choice-title">12 TEAMS</span>
+            <span class="choice-desc">Top 4 Byes + Swiss Stage into 8-Team Double Elimination Playoffs</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- STAGE COMPLETE PROCEED TO PLAYOFFS MODAL -->
+    <div id="modal-proceed-playoffs" class="modal-overlay">
+      <div class="modal-content animate-slide-up" style="text-align: center;">
+        <div class="modal-header" style="justify-content: center; margin-bottom: 0.5rem;">
+          <h3 id="proceed-modal-title" style="font-family: var(--font-heading); font-size: 1.8rem; color: var(--accent-primary, #bdb578); font-weight: 800; letter-spacing: 0.08em;">STAGE COMPLETE</h3>
+        </div>
+        <p id="proceed-modal-desc" class="modal-subtitle" style="font-size: 1rem; color: #999999; margin-bottom: 1.8rem;">All Qualified Teams Confirmed for Playoffs</p>
+        <button id="btn-modal-proceed" class="ts-btn" style="width: 100%; justify-content: center;">
+          PROCEED TO PLAYOFFS
+        </button>
+      </div>
+    </div>
+
+    <!-- GRAND FINALS SIMULATION MODAL -->
+    <div id="modal-grand-finals" class="modal-overlay">
+      <div class="gf-modal-content animate-slide-up">
+        
+        <!-- Top Header -->
+        <div class="gf-header">
+          <h2 class="gf-main-title">GRAND FINALS</h2>
+          <div id="gf-sub-title" class="gf-sub-title">VALORANT CHAMPIONS TOKYO</div>
+        </div>
+
+        <!-- Main Body Stage (Mockup 1 & 2) -->
+        <div class="gf-stage-body">
+          
+          <!-- Team 1 Card (Left) -->
+          <div class="gf-team-card team1-card">
+            <div id="gf-team1-tag" class="gf-team-name">TBD</div>
+            <div id="gf-team1-score" class="gf-team-score">0</div>
+          </div>
+
+          <!-- Center Maps Breakdown List -->
+          <div class="gf-maps-container">
+            <div id="gf-maps-list" class="gf-maps-list">
+              <!-- 5 Map rows dynamically generated -->
+            </div>
+
+            <!-- Map Vetos Text -->
+            <div id="gf-vetos-text" class="gf-vetos-text">
+              MAP VETOS: -
+            </div>
+          </div>
+
+          <!-- Team 2 Card (Right) -->
+          <div class="gf-team-card team2-card">
+            <div id="gf-team2-tag" class="gf-team-name">TBD</div>
+            <div id="gf-team2-score" class="gf-team-score">0</div>
+          </div>
+
+        </div>
+
+        <!-- Controls Bar -->
+        <div class="gf-controls-bar">
+          <button id="btn-gf-sim-map" class="ts-btn btn-primary">SIMULATE NEXT MAP</button>
+          <button id="btn-gf-sim-game" class="ts-btn btn-secondary">SIMULATE ENTIRE GAME</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TEAM SELECTION SCREEN -->
+    <div id="screen-team-select" class="menu-container esports-grid-bg hidden">
+      <!-- Top Navigation & Header Bar -->
+      <div class="ts-header-bar">
+        <button id="btn-ts-back" class="btn-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>BACK</span>
+        </button>
+        
+        <h1 id="ts-format-title" class="ts-main-title">VCT CHAMPIONS</h1>
+
+        <div class="ts-counter-box">
+          <span id="ts-counter-num" class="ts-counter-val">0</span>
+          <span class="ts-counter-slash">/</span>
+          <span id="ts-counter-max" class="ts-counter-max">16</span>
+          <span class="ts-counter-lbl">TEAMS</span>
+        </div>
+      </div>
+      
+      <!-- 4 Region Columns Container -->
+      <div id="ts-team-grid" class="ts-regions-wrapper">
+        <!-- Region Columns (Americas, EMEA, Pacific, China) dynamically inserted -->
+      </div>
+      
+      <!-- Bottom Control Bar -->
+      <div class="ts-footer-bar">
+        <button id="btn-ts-randomize" class="ts-btn btn-randomize">RANDOMIZE</button>
+        <button id="btn-ts-start" class="ts-btn btn-start btn-disabled" disabled>START</button>
+      </div>
+    </div>
+
+    <!-- TOURNAMENT SCREEN -->
+    <div id="screen-tournament" class="esports-grid-bg hidden">
+      <div class="tournament-header">
+        <button id="btn-t-back" class="btn-back">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>BACK</span>
+        </button>
+        
+        <div class="t-banner-card">
+          <img id="t-banner-img" src="assets/vct_logo.png" alt="VCT Event Logo" class="t-banner-icon">
+          <div class="t-banner-info">
+            <span class="t-banner-tag">OFFICIAL VCT EVENT</span>
+            <h2 id="t-name" class="t-main-heading">VCT CHAMPIONS TOKYO</h2>
+          </div>
+        </div>
+
+        <span id="t-stage-indicator" class="t-stage-badge">STAGE</span>
+      </div>
+      
+      <div class="tournament-controls">
+        <button id="btn-sim-next" class="btn btn-primary">Simulate Next</button>
+        <button id="btn-sim-stage" class="btn btn-secondary">Simulate Stage</button>
+        <button id="btn-sim-all" class="btn btn-secondary">Simulate All</button>
+      </div>
+
+      <div id="tournament-content">
+        <!-- Views injected here -->
+      </div>
+      
+      <!-- Champion Celebration Overlay -->
+      <div id="champion-celebration" class="hidden">
+        <div class="celebration-content animate-fade-in animate-slide-up">
+          <div class="trophy-badge">CHAMPION</div>
+          <h2 id="champion-team-name">TEAM NAME</h2>
+          <p class="champion-subtitle">VCT CHAMPIONS</p>
+        </div>
+      </div>
+    </div>
+    
+  </div>
+
+  <style>
+    .hidden { display: none !important; }
+    
+    /* Team Select Layout Styles */
+    .team-select-header, .team-select-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.5rem 2rem; border-bottom: 1px solid var(--border, rgba(255,255,255,0.1));
+    }
+    .team-select-footer { border-bottom: none; border-top: 1px solid var(--border, rgba(255,255,255,0.1)); position: sticky; bottom: 0; background: var(--bg-primary, #0A0A0F); z-index: 10; }
+    .ts-title { background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-family: var(--font-heading); text-transform: uppercase; }
+    .ts-counter-wrap { font-family: var(--font-heading, 'Outfit', sans-serif); font-weight: 600; color: var(--text-secondary, #999); font-size: 0.9rem; }
+    .ts-counter-wrap span { color: var(--accent-primary, #7C5CFC); font-size: 1.2rem; }
+    .ts-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+      padding: 2rem; overflow-y: auto; max-height: calc(100vh - 180px);
+    }
+    .region-column { display: flex; flex-direction: column; gap: 0.5rem; }
+    .region-column h3 {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.75rem; color: var(--accent-primary, #7C5CFC);
+      font-family: var(--font-heading, 'Outfit'); letter-spacing: 0.1em;
+      font-size: 0.9rem; text-transform: uppercase; padding: 0 0.25rem;
+    }
+    .region-count-badge {
+      font-size: 0.75rem; background: var(--bg-secondary, #12121A);
+      border: 1px solid var(--border, rgba(255,255,255,0.15)); color: var(--text-muted, #888);
+      padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600;
+    }
+    .region-count-badge.full {
+      background: var(--accent-primary, #7C5CFC); color: var(--bg-primary, #0A0A0F);
+      border-color: var(--accent-primary, #7C5CFC); font-weight: 800;
+    }
+    .ts-team-card {
+      padding: 0.6rem 0.8rem; border: 1px solid var(--border, rgba(255,255,255,0.1));
+      cursor: pointer; border-radius: var(--radius-md, 0.5rem); transition: all 0.2s ease;
+      background: var(--bg-secondary, #12121A); text-align: center; user-select: none;
+      font-size: 0.85rem; font-weight: 500;
+    }
+    .ts-team-card:hover { border-color: var(--accent-primary, #7C5CFC); transform: translateY(-2px); background: var(--bg-tertiary, #1A1A26); }
+    .ts-team-card.selected {
+      background: var(--accent-primary, #7C5CFC); color: var(--bg-primary, #0A0A0F);
+      border-color: var(--accent-primary, #7C5CFC); font-weight: 700;
+      box-shadow: 0 0 15px -3px var(--accent-glow, rgba(124, 92, 252, 0.5));
+    }
+    
+    /* Tournament Controls Layout */
+    .tournament-header {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 1rem 2rem; border-bottom: 1px solid var(--border, rgba(255,255,255,0.1));
+      background: var(--bg-secondary, #12121A);
+    }
+    .tournament-header h2 { flex: 1; background: var(--accent-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; font-family: var(--font-heading); }
+    .tournament-controls {
+      display: flex; gap: 1rem; padding: 1rem 2rem;
+      justify-content: center; background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+    }
+    #tournament-content { padding: 2rem; overflow-y: auto; height: calc(100vh - 160px); }
+    
+    /* Celebration Overlay */
+    #champion-celebration {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 1000; color: white; text-align: center; cursor: pointer;
+    }
+    .celebration-content { position: relative; z-index: 1; }
+    .trophy-badge { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; letter-spacing: 0.2em; color: #bdb578; margin-bottom: 1rem; }
+    #champion-team-name { 
+      font-size: clamp(2rem, 8vw, 5rem); text-transform: uppercase; margin: 0; 
+      font-family: 'Outfit', sans-serif; 
+      background: var(--accent-gradient, linear-gradient(135deg, #FFD700, #FD4556)); 
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      letter-spacing: 0.05em;
+    }
+    .champion-subtitle { font-size: 1.2rem; letter-spacing: 6px; opacity: 0.6; margin-top: 0.5rem; text-transform: uppercase; font-family: var(--font-heading); }
+
+    @media (max-width: 768px) {
+      .ts-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; padding: 1rem; }
+    }
+  </style>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+/* Dark Mode Base - Default Champions Dark (#131313) */
+:root {
+  --bg-primary: #131313;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #222222;
+  --bg-elevated: #2a2a2a;
+  --bg-hover: #333333;
+  
+  --text-primary: #ece7e1;
+  --text-secondary: #ece7e1;
+  --text-muted: #999999;
+  
+  --border: #2a2a2a;
+  --border-light: #3e3e3e;
+  
+  --success: #4ADE80;
+  --danger: #da322e;
+  --warning: #bdb578;
+
+  /* Theme Tokens */
+  --champs-gold: #bdb578;
+  --champs-red: #da322e;
+  --masters-purple: #6f4acd;
+  --text-cream: #ece7e1;
+
+  /* Active Theme Defaults (Champions Gold & Red) */
+  --accent-primary: #bdb578;
+  --accent-secondary: #da322e;
+  --accent-glow: rgba(189, 181, 120, 0.4);
+  --accent-gradient: linear-gradient(135deg, #bdb578, #da322e);
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Typography */
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+
+  /* Z-Index */
+  --z-below: -1;
+  --z-base: 0;
+  --z-above: 10;
+  --z-overlay: 100;
+  --z-modal: 1000;
+}
+
+/* Masters Theme Overrides */
+body.theme-masters {
+  background-color: #090c10;
+  --bg-primary: #090c10;
+  --bg-secondary: #10161d;
+  --bg-tertiary: #161e27;
+  --text-primary: #ece7e1;
+  --text-secondary: #ece7e1;
+  --text-muted: #7a8b9e;
+  --border: #18232e;
+  --border-light: #243242;
+  --accent-primary: #6f4acd;
+  --accent-secondary: #ece7e1;
+  --accent-glow: rgba(111, 74, 205, 0.35);
+  --accent-gradient: linear-gradient(135deg, #6f4acd, #906bf0);
+}
+
+/* Champions Theme Overrides */
+body.theme-champions {
+  --bg-primary: #131313;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #222222;
+  --text-primary: #ece7e1;
+  --text-secondary: #ece7e1;
+  --border: #2a2a2a;
+  --border-light: #3e3e3e;
+  --accent-primary: #bdb578;
+  --accent-secondary: #da322e;
+  --accent-glow: rgba(189, 181, 120, 0.4);
+  --accent-gradient: linear-gradient(135deg, #bdb578, #da322e);
+}

@@ -1,0 +1,1096 @@
+.menu-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding: 3rem 1.5rem;
+  z-index: var(--z-base);
+  background-color: #131313;
+}
+
+/* Background overlay */
+.menu-bg-wrapper {
+  position: absolute;
+  inset: 0;
+  background-color: #131313;
+  background-image: 
+    linear-gradient(rgba(218, 50, 46, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(218, 50, 46, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 50% 40%, rgba(189, 181, 120, 0.08) 0%, transparent 60%);
+  background-size: 40px 40px, 40px 40px, 100% 100%;
+  z-index: var(--z-below);
+}
+
+/* Hero Section */
+.menu-hero {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: slideUp 0.6s ease;
+}
+
+.vct-logo-area {
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vct-logo-img {
+  max-width: 220px;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(189, 181, 120, 0.6));
+}
+
+/* Main Title - Champions Gold (#bdb578) */
+.menu-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.5rem, 6.5vw, 4.8rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #bdb578;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-shadow: 0 0 25px rgba(189, 181, 120, 0.4);
+  max-width: 900px;
+  margin: 0;
+}
+
+/* Main Navigation Buttons Container */
+.main-menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 90%;
+  max-width: 850px;
+  align-items: center;
+  animation: fadeIn 0.8s ease;
+}
+
+.main-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 100%;
+  padding: 1.8rem 3rem;
+  background-color: #131313;
+  border: 3px solid #da322e;
+  border-radius: 2px;
+  color: #da322e;
+  font-family: var(--font-heading);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.7);
+}
+
+.main-nav-btn:hover {
+  background-color: #da322e;
+  color: #131313;
+  border-color: #da322e;
+  box-shadow: 0 12px 35px rgba(218, 50, 46, 0.5);
+}
+
+.main-nav-btn:active {
+  background-color: #da322e;
+}
+
+.badge-coming-soon {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: rgba(218, 50, 46, 0.15);
+  color: #da322e;
+  border: 1px solid #da322e;
+  padding: 0.3rem 0.8rem;
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.main-nav-btn:hover .badge-coming-soon {
+  background: #131313;
+  color: #da322e;
+  border-color: #131313;
+}
+
+/* ========================================================
+   PRESETS SELECTION SCREEN (#screen-presets)
+   ======================================================== */
+
+.presets-nav-bar {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.8rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  color: var(--text-muted, #888888);
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-back:hover {
+  opacity: 1;
+  color: #ece7e1;
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.presets-screen-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.presets-screen-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #bdb578;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+/* 2-Card Preset Grid */
+.event-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 2.5rem;
+  width: 90%;
+  max-width: 950px;
+  animation: fadeIn 0.5s ease;
+}
+
+@media (min-width: 768px) {
+  .event-presets-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.event-preset-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: #1a1a1a;
+  border: 2px solid #2d2d2d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.event-preset-card:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Masters Hover Style */
+.event-preset-card.preset-masters:hover {
+  border-color: #6f4acd;
+  box-shadow: 0 15px 35px rgba(111, 74, 205, 0.3);
+  background: linear-gradient(180deg, #1f182e 0%, #1a1a1a 100%);
+}
+
+.event-preset-card.preset-masters .preset-card-title {
+  color: #6f4acd;
+}
+
+/* Champions Hover Style */
+.event-preset-card.preset-champions:hover {
+  border-color: #bdb578;
+  box-shadow: 0 15px 35px rgba(189, 181, 120, 0.3);
+  background: linear-gradient(180deg, #282519 0%, #1a1a1a 100%);
+}
+
+.event-preset-card.preset-champions .preset-card-title {
+  color: #bdb578;
+}
+
+.preset-card-logo {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.preset-logo-img {
+  max-height: 90px;
+  max-width: 180px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.15));
+}
+
+.preset-card-title {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.preset-card-desc {
+  color: #999999;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: auto;
+}
+
+/* Masters Choice Modal */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.modal-header h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: #6f4acd;
+  letter-spacing: 0.08em;
+}
+
+.modal-subtitle {
+  color: #999999;
+  font-size: 0.9rem;
+  margin-bottom: 1.8rem;
+}
+
+.masters-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 550px) {
+  .masters-choice-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.masters-choice-btn {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: #242424;
+  border: 2px solid #383838;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.masters-choice-btn:hover {
+  border-color: #6f4acd;
+  background: #2c223b;
+}
+
+.choice-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #ece7e1;
+  margin-bottom: 0.4rem;
+}
+
+.choice-desc {
+  font-size: 0.8rem;
+  color: #999999;
+  line-height: 1.4;
+}
+
+/* ========================================================
+   TEAM SELECTION SCREEN (#screen-team-select)
+   ======================================================== */
+
+#screen-team-select {
+  min-height: 100vh;
+  padding: 1.2rem 2.5rem 2rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ts-header-bar {
+  width: 100%;
+  max-width: 1750px;
+  height: 70px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ts-main-title {
+  font-family: var(--font-heading);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-secondary, #da322e);
+  margin: 0;
+  text-shadow: 0 0 25px rgba(218, 50, 46, 0.4);
+}
+
+body.theme-masters .ts-main-title {
+  color: var(--masters-primary, #6f4acd);
+  text-shadow: 0 0 25px rgba(111, 74, 205, 0.4);
+}
+
+/* Champions Pale Gold Simulation Buttons */
+body.theme-champions #btn-sim-next {
+  background: #bdb578;
+  color: #131313;
+  border: 1px solid #bdb578;
+  font-weight: 800;
+  box-shadow: 0 0 15px rgba(189, 181, 120, 0.4);
+}
+
+body.theme-champions #btn-sim-next:hover {
+  background: #d4c885;
+  color: #131313;
+  border-color: #d4c885;
+  box-shadow: 0 0 20px rgba(189, 181, 120, 0.6);
+}
+
+/* Red Highlighted Proceed to Playoffs Button */
+.btn-proceed-highlight {
+  background: #da322e !important;
+  color: #ffffff !important;
+  border-color: #da322e !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+  box-shadow: 0 0 25px rgba(218, 50, 46, 0.7) !important;
+  animation: pulseHighlight 1.5s infinite alternate ease-in-out;
+}
+
+body.theme-masters .btn-proceed-highlight {
+  background: #ffffff !important;
+  color: #090c10 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Grand Final Ready Glowing Simulation Button */
+.btn-sim-grand-final {
+  background: #bdb578 !important;
+  color: #131313 !important;
+  border-color: #bdb578 !important;
+  font-weight: 900 !important;
+  box-shadow: 0 0 25px rgba(189, 181, 120, 0.7) !important;
+  animation: pulseGoldHighlight 1.5s infinite alternate ease-in-out;
+}
+
+body.theme-masters .btn-sim-grand-final {
+  background: #ffffff !important;
+  color: #090c10 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.8) !important;
+  animation: pulseWhiteHighlight 1.5s infinite alternate ease-in-out;
+}
+
+@keyframes pulseGoldHighlight {
+  from {
+    box-shadow: 0 0 15px rgba(189, 181, 120, 0.5);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(189, 181, 120, 0.9);
+  }
+}
+
+@keyframes pulseWhiteHighlight {
+  from {
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+  }
+}
+
+@keyframes pulseHighlight {
+  from {
+    box-shadow: 0 0 15px rgba(218, 50, 46, 0.5);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(218, 50, 46, 0.9);
+  }
+}
+
+/* Counter Box (Fixed width to prevent text layout shifting!) */
+.ts-counter-box {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid var(--accent-primary, #bdb578);
+  padding: 0.6rem 1.2rem;
+  border-radius: 2px;
+  min-width: 140px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.ts-counter-val {
+  font-size: 1.6rem;
+  color: var(--accent-primary, #bdb578);
+}
+
+.ts-counter-slash {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+}
+
+.ts-counter-max {
+  font-size: 1.4rem;
+  color: var(--text-secondary);
+}
+
+.ts-counter-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  margin-left: 0.3rem;
+}
+
+/* 4 Region Columns Grid */
+.ts-regions-wrapper {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1.8rem;
+  width: 98%;
+  max-width: 1750px;
+  flex: 1;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 650px) {
+  .ts-regions-wrapper {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1050px) {
+  .ts-regions-wrapper {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Single Region Box */
+.region-box-column {
+  background: #171717;
+  border: 2px solid var(--accent-primary, #bdb578);
+  border-radius: 2px;
+  padding: 1.8rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+body.theme-masters .region-box-column {
+  background: #0e141c;
+  border-color: var(--masters-primary, #6f4acd);
+}
+
+.region-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.region-box-title {
+  font-family: var(--font-heading);
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent-secondary, #da322e);
+}
+
+body.theme-masters .region-box-title {
+  color: #ece7e1;
+}
+
+.region-box-quota {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.25rem 0.8rem;
+  border-radius: 2px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.region-box-quota.quota-full {
+  background: var(--accent-primary, #bdb578);
+  color: #131313;
+  border-color: var(--accent-primary, #bdb578);
+}
+
+/* 3x4 Team Boxes Grid */
+.region-boxes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 1rem;
+  flex: 1;
+}
+
+.team-select-box {
+  min-height: 75px;
+  background: #222222;
+  border: 2px solid rgba(189, 181, 120, 0.4);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-masters .team-select-box {
+  background: #141c26;
+  border-color: rgba(111, 74, 205, 0.4);
+}
+
+/* NO transform: translateY - strictly static position */
+.team-select-box:hover {
+  border-color: var(--accent-primary, #bdb578);
+  background: #2a2a2a;
+}
+
+.team-tag-text {
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--accent-primary, #bdb578);
+}
+
+body.theme-masters .team-tag-text {
+  color: #ece7e1;
+}
+
+/* Selected State */
+.team-select-box.selected {
+  background: var(--accent-primary, #bdb578);
+  border-color: var(--accent-primary, #bdb578);
+  box-shadow: 0 0 20px var(--accent-glow, rgba(189, 181, 120, 0.6));
+}
+
+.team-select-box.selected .team-tag-text {
+  color: #131313;
+}
+
+body.theme-masters .team-select-box.selected {
+  background: var(--masters-primary, #6f4acd);
+  border-color: var(--masters-primary, #6f4acd);
+}
+
+body.theme-masters .team-select-box.selected .team-tag-text {
+  color: #ffffff;
+}
+
+/* Bottom Control Bar */
+.ts-footer-bar {
+  width: 98%;
+  max-width: 1750px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ts-btn {
+  padding: 1.4rem 3.5rem;
+  background: #131313;
+  border: 3px solid var(--accent-primary, #bdb578);
+  border-radius: 2px;
+  color: var(--accent-primary, #bdb578);
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+}
+
+.ts-btn:hover {
+  background: var(--accent-primary, #bdb578);
+  color: #131313;
+  box-shadow: 0 10px 25px var(--accent-glow);
+}
+
+.ts-btn.btn-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.8);
+}
+
+/* ========================================================
+   TOURNAMENT HEADER & HOST CITY DISPLAY
+   ======================================================== */
+
+#screen-tournament {
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#tournament-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tournament-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 2.5rem;
+  height: 76px;
+  background: rgba(0, 0, 0, 0.4);
+  border-bottom: 2px solid var(--border-light, #2d2d2d);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.t-banner-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.35rem 1.4rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-light, rgba(255, 255, 255, 0.15));
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+}
+
+body.theme-masters .t-banner-card {
+  border-color: rgba(111, 74, 205, 0.4);
+  background: linear-gradient(90deg, rgba(111, 74, 205, 0.12) 0%, rgba(12, 17, 23, 0.6) 100%);
+}
+
+body.theme-champions .t-banner-card {
+  border-color: rgba(189, 181, 120, 0.4);
+  background: linear-gradient(90deg, rgba(189, 181, 120, 0.12) 0%, rgba(19, 19, 19, 0.6) 100%);
+}
+
+.t-banner-icon {
+  max-height: 36px;
+  max-width: 90px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 12px var(--accent-glow, rgba(189, 181, 120, 0.5)));
+}
+
+.t-banner-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.t-banner-tag {
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.t-main-heading {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-primary, #bdb578);
+  margin: 0;
+  text-shadow: 0 0 20px var(--accent-glow, rgba(189, 181, 120, 0.4));
+}
+
+body.theme-masters .t-main-heading {
+  color: var(--masters-primary, #6f4acd);
+  text-shadow: 0 0 20px rgba(111, 74, 205, 0.5);
+}
+
+.t-stage-badge {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--bg-tertiary, #222222);
+  border: 1px solid var(--accent-primary, #bdb578);
+  color: var(--accent-primary, #bdb578);
+  padding: 0.4rem 1rem;
+  border-radius: 2px;
+  box-shadow: 0 0 12px var(--accent-glow, rgba(189, 181, 120, 0.3));
+}
+
+/* Stage Proceed Banner - Hidden in favor of bottom control bar buttons */
+.stage-proceed-banner {
+  display: none !important;
+}
+
+.banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.banner-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--accent-primary, #bdb578);
+}
+
+body.theme-masters .banner-title {
+  color: var(--masters-primary, #6f4acd);
+}
+
+.banner-sub {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.btn-proceed {
+  padding: 1rem 2.5rem;
+  background: var(--accent-primary, #bdb578);
+  border: none;
+  border-radius: 2px;
+  color: #131313;
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px var(--accent-glow);
+}
+
+body.theme-masters .btn-proceed {
+  background: var(--masters-primary, #6f4acd);
+  color: #ffffff;
+}
+
+.btn-proceed:hover {
+  background: #ffffff;
+  color: #131313;
+  box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
+}
+
+/* ========================================================
+   GRAND FINALS MODAL & STAGE STYLING (Mockup 1 & 2)
+   ======================================================== */
+
+.gf-modal-content {
+  background: #0d0d0d;
+  border: 2px solid #da322e;
+  border-radius: 4px;
+  padding: 2.2rem 3rem;
+  max-width: 1050px;
+  width: 95%;
+  box-shadow: 0 0 60px rgba(218, 50, 46, 0.35), 0 0 25px rgba(189, 181, 120, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.gf-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #da322e, #bdb578, #da322e, transparent);
+  box-shadow: 0 0 15px #da322e;
+}
+
+body.theme-masters .gf-modal-content {
+  border-color: #6f4acd;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(111, 74, 205, 0.4);
+}
+
+.gf-header {
+  text-align: center;
+}
+
+.gf-main-title {
+  font-family: var(--font-heading);
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #bdb578;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow: 0 0 25px rgba(218, 50, 46, 0.6);
+}
+
+body.theme-masters .gf-main-title {
+  color: #6f4acd;
+  text-shadow: 0 0 25px rgba(111, 74, 205, 0.5);
+}
+
+.gf-sub-title {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: #ece7e1;
+  text-transform: uppercase;
+  margin-top: 0.3rem;
+  opacity: 0.85;
+}
+
+/* Main Body Stage (Left Team 1, Center Maps, Right Team 2) */
+.gf-stage-body {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin: 0.5rem 0;
+}
+
+.gf-team-card {
+  width: 220px;
+  height: 220px;
+  background: #151515;
+  border: 2px solid #2d2d2d;
+  border-top: 3px solid #da322e;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+}
+
+.gf-team-name {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: #ece7e1;
+}
+
+.team-select-box {
+  min-height: 75px;
+  background: #222222;
+  border: 2px solid rgba(189, 181, 120, 0.4);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  user-select: none;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Seed Badge on Team Select Cards */
+.seed-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #131313;
+  background: #bdb578;
+  padding: 0.2rem 0.55rem;
+  border-bottom-left-radius: 4px;
+  letter-spacing: 0.05em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  line-height: 1;
+}
+
+body.theme-masters .seed-badge {
+  color: #ffffff;
+  background: #6f4acd;
+}
+
+.gf-team-score {
+  font-family: var(--font-heading);
+  font-size: 4rem;
+  font-weight: 900;
+  color: #bdb578;
+  line-height: 1;
+}
+
+body.theme-masters .gf-team-score {
+  color: #a07cf0;
+}
+
+/* Center Maps Breakdown List */
+.gf-maps-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gf-maps-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Individual Map Row (Matching Mockup 1 & 2) */
+.gf-map-row {
+  background: #181818;
+  border: 1px solid #333333;
+  border-radius: 2px;
+  padding: 0.5rem 1.2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 44px;
+  position: relative;
+}
+
+/* Map Pick Gold Bar Indicators (Matching Mockup 2!) */
+.gf-map-row.picked-by-team1 {
+  border-left: 6px solid #bdb578 !important;
+}
+
+.gf-map-row.picked-by-team2 {
+  border-right: 6px solid #bdb578 !important;
+}
+
+body.theme-masters .gf-map-row.picked-by-team1 {
+  border-left-color: #6f4acd !important;
+}
+
+body.theme-masters .gf-map-row.picked-by-team2 {
+  border-right-color: #6f4acd !important;
+}
+
+.gf-map-name {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #ece7e1;
+  text-transform: uppercase;
+}
+
+.gf-map-score {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 900;
+  min-width: 30px;
+  font-variant-numeric: tabular-nums;
+}
+
+.gf-map-score.win-score {
+  color: #4ade80; /* Green for win */
+}
+
+.gf-map-score.lose-score {
+  color: #f87171; /* Red for loss */
+}
+
+.gf-map-score.unplayed-score {
+  color: #666666;
+}
+
+.gf-vetos-text {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #888888;
+  text-transform: uppercase;
+  margin-top: 0.5rem;
+}
+
+.gf-controls-bar {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+/* Grand Finals Modal Masters Overrides (White Accents) */
+body.theme-masters .gf-modal-content::before {
+  background: linear-gradient(90deg, transparent, #ffffff, #6f4acd, #ffffff, transparent) !important;
+  box-shadow: 0 0 15px #ffffff !important;
+}
+
+body.theme-masters .gf-team-card {
+  border-top-color: #ffffff !important;
+}
+
+body.theme-masters .btn-gf-sim {
+  background: #ffffff !important;
+  color: #090c10 !important;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5) !important;
+}
