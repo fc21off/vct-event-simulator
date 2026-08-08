@@ -162,8 +162,9 @@ export function simulateNextStep(tournament) {
     playableNode.played = true;
     playableNode.winner = match.winner;
     playableNode.loser = match.loser;
-    playableNode.team1Score = match.score1;
-    playableNode.team2Score = match.score2;
+    playableNode.team1Score = match.team1Score;
+    playableNode.team2Score = match.team2Score;
+    playableNode.maps = match.maps;
 
     propagateResult(tournament, playableNode);
     checkTournamentCompletion(tournament);

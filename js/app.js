@@ -149,11 +149,19 @@ export function openGrandFinalModal() {
   const t = appState.tournament;
   if (!t) return;
 
-  // Use saved grandFinalState from bracket if available!
-  if (t.bracket && t.bracket.grandFinalState) {
-    appState.grandFinalState = t.bracket.grandFinalState;
-  } else if (!appState.grandFinalState && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2) {
-    appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
+  if (t.type === 'sandbox') {
+    const gfNode = (t.nodes || []).find(n => n.type === 'gamebox' && n.isGrandFinal);
+    if (gfNode && gfNode.grandFinalState) {
+      appState.grandFinalState = gfNode.grandFinalState;
+    } else if (gfNode && gfNode.team1 && gfNode.team2) {
+      appState.grandFinalState = createGrandFinalMatch(gfNode.team1, gfNode.team2);
+    }
+  } else {
+    if (t.bracket && t.bracket.grandFinalState) {
+      appState.grandFinalState = t.bracket.grandFinalState;
+    } else if (!appState.grandFinalState && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2) {
+      appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
+    }
   }
 
   if (appState.grandFinalState) {
@@ -185,15 +193,31 @@ function handleGrandFinalCompletion() {
   if (!gf || !gf.isComplete || !appState.tournament) return;
 
   const t = appState.tournament;
-  t.bracket.grandFinalState = gf;
-  t.bracket.grandFinal.played = true;
-  t.bracket.grandFinal.team1Score = gf.team1MapsWon;
-  t.bracket.grandFinal.team2Score = gf.team2MapsWon;
-  t.bracket.grandFinal.winner = gf.winner;
-  t.bracket.champion = gf.winner;
-  t.champion = gf.winner;
-  t.stage = 'complete';
-  t.viewingStage = 'complete';
+  if (t.type === 'sandbox') {
+    const gfNode = (t.nodes || []).find(n => n.type === 'gamebox' && n.isGrandFinal);
+    if (gfNode) {
+      gfNode.played = true;
+      gfNode.winner = gf.winner;
+      gfNode.loser = gf.loser;
+      gfNode.team1Score = gf.team1MapsWon;
+      gfNode.team2Score = gf.team2MapsWon;
+      gfNode.grandFinalState = gf;
+    }
+    t.champion = gf.winner;
+    t.completed = true;
+    t.stage = 'complete';
+    t.viewingStage = 'complete';
+  } else if (t.bracket && t.bracket.grandFinal) {
+    t.bracket.grandFinalState = gf;
+    t.bracket.grandFinal.played = true;
+    t.bracket.grandFinal.team1Score = gf.team1MapsWon;
+    t.bracket.grandFinal.team2Score = gf.team2MapsWon;
+    t.bracket.grandFinal.winner = gf.winner;
+    t.bracket.champion = gf.winner;
+    t.champion = gf.winner;
+    t.stage = 'complete';
+    t.viewingStage = 'complete';
+  }
 
   // Wait 1 second before closing modal and crowning champion
   setTimeout(() => {
@@ -235,12 +259,24 @@ function initTournamentControls() {
       return;
     }
 
-    const isGrandFinalReady = t.stage !== 'complete' && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2 && !t.bracket.grandFinal.played;
+    const isStandardGFReady = t.stage !== 'complete' && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2 && !t.bracket.grandFinal.played;
 
-    if (isGrandFinalReady) {
-      // Open Grand Finals Modal
+    const sandboxGFNode = (t.type === 'sandbox' && t.stage !== 'complete')
+      ? (t.nodes || []).find(n => n.type === 'gamebox' && n.isGrandFinal && n.team1 && n.team2 && !n.played)
+      : null;
+
+    if (isStandardGFReady) {
       if (!appState.grandFinalState) {
         appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
+      }
+      const gfModal = document.getElementById('modal-grand-finals');
+      if (gfModal) {
+        gfModal.classList.add('active');
+        renderGrandFinalModal(appState.grandFinalState, t.name);
+      }
+    } else if (sandboxGFNode) {
+      if (!appState.grandFinalState) {
+        appState.grandFinalState = createGrandFinalMatch(sandboxGFNode.team1, sandboxGFNode.team2);
       }
       const gfModal = document.getElementById('modal-grand-finals');
       if (gfModal) {
