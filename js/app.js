@@ -3,10 +3,11 @@ import { initTeamSelect } from './ui/teamSelect.js';
 import { renderSwissStage } from './ui/swissView.js';
 import { renderGroupStage } from './ui/groupView.js';
 import { renderBracket } from './ui/bracketView.js';
+import { renderSandboxView } from './ui/sandboxView.js';
 import { createGrandFinalMatch, simulateNextGrandFinalMap, simulateEntireGrandFinal } from './engine/grandFinals.js';
 import { renderGrandFinalModal } from './ui/grandFinalModal.js';
 
-const screens = ['menu', 'presets', 'team-select', 'tournament'];
+const screens = ['menu', 'presets', 'sandbox-menu', 'sandbox-editor', 'team-select', 'tournament'];
 
 export function showScreen(screenId) {
   screens.forEach(s => {
@@ -62,7 +63,9 @@ export function renderTournament() {
   content.innerHTML = '';
   
   // Render based on viewingStage
-  if (viewingStage === 'swiss' && t.swiss) {
+  if (t.type === 'sandbox') {
+    renderSandboxView(content, t);
+  } else if (viewingStage === 'swiss' && t.swiss) {
     renderSwissStage(content, t.swiss);
   } else if (viewingStage === 'groups' && t.groups) {
     renderGroupStage(content, t.groups);

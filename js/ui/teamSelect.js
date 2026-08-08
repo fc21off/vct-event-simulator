@@ -51,15 +51,22 @@ export function initTeamSelect() {
   }
 }
 
-export function setupTeamSelect(format) {
-  requiredCount = formatCounts[format] || 16;
-  quotaPerRegion = requiredCount / 4;
+let customCallback = null;
+
+export function setupTeamSelect(format, callback = null) {
+  customCallback = callback;
+  if (typeof format === 'number') {
+    requiredCount = format;
+  } else {
+    requiredCount = formatCounts[format] || 16;
+  }
+  quotaPerRegion = Math.ceil(requiredCount / 4);
   
   appState.selectedTeams = [];
   
   const titleEl = document.getElementById('ts-format-title');
   if (titleEl) {
-    titleEl.textContent = formatTitles[format] || 'VCT CHAMPIONS';
+    titleEl.textContent = typeof format === 'string' ? (formatTitles[format] || 'VCT CHAMPIONS') : 'CUSTOM TOURNAMENT';
   }
   
   const maxEl = document.getElementById('ts-counter-max');
@@ -184,6 +191,14 @@ function updateCounter() {
 }
 
 async function startTournament() {
+  if (customCallback) {
+    const cb = customCallback;
+    customCallback = null;
+    cb(appState.selectedTeams);
+    showScreen('tournament');
+    return;
+  }
+
   const format = appState.currentFormat;
   let moduleName = `${format}.js`;
   

@@ -1,0 +1,229 @@
+/* Sandbox Node Editor Styles */
+.sandbox-viewport {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 80px);
+  background: #090c10;
+  background-image: 
+    radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sandbox-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 2rem;
+  background: #131720;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sandbox-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #bdb578;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.sandbox-canvas-area {
+  position: absolute;
+  inset: 0;
+  top: 60px;
+  bottom: 70px;
+}
+
+.sandbox-svg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sandbox-cable {
+  fill: none;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  cursor: pointer;
+  pointer-events: stroke;
+  transition: stroke-width 0.2s ease;
+}
+
+.sandbox-cable:hover {
+  stroke-width: 6px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8));
+}
+
+.cable-winner {
+  stroke: #00ff66;
+}
+
+.cable-loser {
+  stroke: #ff2a5f;
+}
+
+.cable-drawing {
+  stroke: #ffffff;
+  stroke-dasharray: 6 6;
+  animation: dash 1s linear infinite;
+}
+
+@keyframes dash {
+  to { stroke-dashoffset: -12; }
+}
+
+.sandbox-nodes-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+}
+
+/* Generic Node Box */
+.sb-node {
+  position: absolute;
+  background: #141c26;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  min-width: 170px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  cursor: move;
+}
+
+.sb-node.node-gamebox {
+  border-color: rgba(189, 181, 120, 0.5);
+}
+
+.sb-node.node-grandfinal {
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+  background: linear-gradient(135deg, #182232, #0d131c);
+}
+
+.sb-node.node-champion {
+  border-color: #bdb578;
+  background: linear-gradient(135deg, #2a2412, #141c26);
+  box-shadow: 0 0 25px rgba(189, 181, 120, 0.5);
+}
+
+.sb-node.node-elimination {
+  border-color: #ff2a5f;
+  background: rgba(255, 42, 95, 0.1);
+  min-width: 100px;
+  text-align: center;
+}
+
+.sb-node-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ece7e1;
+}
+
+.sb-node-title {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sb-node-delete {
+  background: transparent;
+  border: none;
+  color: #888888;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.sb-node-delete:hover {
+  color: #ff2a5f;
+}
+
+/* Connection Ports (Dots) */
+.sb-port {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  background: #111111;
+  cursor: pointer;
+  z-index: 10;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.sb-port:hover {
+  transform: scale(1.3);
+}
+
+.port-input {
+  left: -9px;
+  background: #00aeef;
+}
+
+.port-winner {
+  right: -9px;
+  top: 20%;
+  background: #00ff66;
+  border-color: #00ff66;
+}
+
+.port-loser {
+  right: -9px;
+  bottom: 20%;
+  background: #ff2a5f;
+  border-color: #ff2a5f;
+}
+
+.port-in1 { top: 25%; }
+.port-in2 { bottom: 25%; }
+
+/* Bottom Toolbar */
+.sandbox-toolbar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: #131720;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 20;
+  padding: 0 2rem;
+}
+
+.sb-tool-btn {
+  background: #1e2633;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ece7e1;
+  padding: 0.5rem 1.2rem;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sb-tool-btn:hover {
+  background: #2a3547;
+  border-color: #ffffff;
+}
+
+.sb-tool-btn.btn-finish {
+  background: var(--accent-gradient, linear-gradient(135deg, #bdb578, #da322e));
+  color: #131313;
+  border: none;
+  font-size: 0.95rem;
+  box-shadow: 0 0 15px rgba(189, 181, 120, 0.4);
+}

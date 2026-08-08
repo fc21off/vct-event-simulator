@@ -24,7 +24,11 @@ export function initMenu() {
 
   if (btnSandbox) {
     btnSandbox.addEventListener('click', () => {
-      alert("Sandbox Mode (Free Mode) is coming soon!");
+      showScreen('sandbox-menu');
+      import('./sandboxMenu.js').then(mod => {
+        const container = document.getElementById('screen-sandbox-menu');
+        if (container) mod.renderSandboxMenu(container);
+      });
     });
   }
 
