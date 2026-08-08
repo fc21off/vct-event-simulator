@@ -587,8 +587,8 @@ body.theme-masters .region-box-title {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 0.4rem 0.25rem;
+  justify-content: space-evenly;
+  padding: 0.6rem 0.3rem 0.4rem;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   user-select: none;
@@ -608,17 +608,18 @@ body.theme-masters .team-select-box {
 }
 
 .team-select-logo {
-  width: 38px;
-  height: 38px;
+  width: 58px;
+  height: 58px;
+  max-height: 62%;
   object-fit: contain;
   margin-right: 0;
-  margin-bottom: 0.25rem;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  margin-bottom: 0.2rem;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.7));
 }
 
 .team-tag-text {
   font-family: var(--font-heading);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--accent-primary, #bdb578);
