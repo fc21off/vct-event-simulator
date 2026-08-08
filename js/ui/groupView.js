@@ -123,13 +123,16 @@ function createGSLMatchBox(match, fallbackTeam1, fallbackTeam2) {
   const t1Score = match ? match.team1Score : '-';
   const t2Score = match ? match.team2Score : '-';
 
+  const t1Logo = t1 && t1.logo ? `<img src="${t1.logo}" alt="" class="match-team-logo" />` : '';
+  const t2Logo = t2 && t2.logo ? `<img src="${t2.logo}" alt="" class="match-team-logo" />` : '';
+
   box.innerHTML = `
     <div class="gsl-match-row">
-      <span class="gsl-team-name ${t1Win ? 'winner-text' : (t1Lose ? 'loser-text' : '')}">${t1Name}</span>
+      <span class="gsl-team-name ${t1Win ? 'winner-text' : (t1Lose ? 'loser-text' : '')}">${t1Logo}${t1Name}</span>
       <span class="gsl-score-num ${t1Win ? 'winner-score' : (t1Lose ? 'loser-score' : '')}">${t1Score}</span>
     </div>
     <div class="gsl-match-row">
-      <span class="gsl-team-name ${t2Win ? 'winner-text' : (t2Lose ? 'loser-text' : '')}">${t2Name}</span>
+      <span class="gsl-team-name ${t2Win ? 'winner-text' : (t2Lose ? 'loser-text' : '')}">${t2Logo}${t2Name}</span>
       <span class="gsl-score-num ${t2Win ? 'winner-score' : (t2Lose ? 'loser-score' : '')}">${t2Score}</span>
     </div>
   `;

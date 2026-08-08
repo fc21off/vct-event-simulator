@@ -605,9 +605,17 @@ body.theme-masters .team-select-box {
   background: #2a2a2a;
 }
 
+.team-select-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  margin-right: 0.4rem;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+}
+
 .team-tag-text {
   font-family: var(--font-heading);
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: 0.05em;
   color: var(--accent-primary, #bdb578);

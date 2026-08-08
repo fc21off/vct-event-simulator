@@ -117,14 +117,14 @@ function renderTeamGrid() {
       
       box.className = `team-select-box ${isSelected ? 'selected' : ''}`;
       
-      if (isSelected && seedNum) {
-        box.innerHTML = `
-          <span class="team-tag-text">${team.tag || team.id}</span>
-          <span class="seed-badge" title="Seed #${seedNum}">#${seedNum}</span>
-        `;
-      } else {
-        box.innerHTML = `<span class="team-tag-text">${team.tag || team.id}</span>`;
-      }
+      const logoHtml = team.logo ? `<img src="${team.logo}" alt="${team.name}" class="team-select-logo" />` : '';
+      const seedBadgeHtml = isSelected && seedNum ? `<span class="seed-badge" title="Seed #${seedNum}">#${seedNum}</span>` : '';
+      
+      box.innerHTML = `
+        ${logoHtml}
+        <span class="team-tag-text">${team.tag || team.id}</span>
+        ${seedBadgeHtml}
+      `;
       
       box.title = `${team.name} ${isSelected ? `(Seed #${seedNum})` : ''}`;
       
