@@ -135,10 +135,10 @@
         <p class="modal-subtitle" style="font-size: 0.9rem; color: #999999; margin-bottom: 1.5rem;">Select participating team count for your bracket:</p>
         
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
-          <button class="ts-btn sb-team-count-preset" data-count="4">4 TEAMS</button>
-          <button class="ts-btn sb-team-count-preset" data-count="8">8 TEAMS</button>
-          <button class="ts-btn sb-team-count-preset" data-count="12">12 TEAMS</button>
-          <button class="ts-btn sb-team-count-preset" data-count="16">16 TEAMS</button>
+          <button class="sb-team-count-preset" data-count="4">4 TEAMS</button>
+          <button class="sb-team-count-preset selected" data-count="8">8 TEAMS</button>
+          <button class="sb-team-count-preset" data-count="12">12 TEAMS</button>
+          <button class="sb-team-count-preset" data-count="16">16 TEAMS</button>
         </div>
 
         <div style="margin-bottom: 1.5rem; text-align: left;">
@@ -146,7 +146,7 @@
           <input type="number" id="input-sb-custom-count" min="2" max="32" value="8" style="width: 100%; padding: 0.6rem 1rem; background: #131720; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff; font-family: var(--font-heading); font-size: 1rem; box-sizing: border-box;">
         </div>
 
-        <button id="btn-sb-start-editor" class="ts-btn btn-start" style="width: 100%; justify-content: center;">
+        <button id="btn-sb-start-editor" class="btn-start-editor" style="width: 100%;">
           OPEN BRACKET EDITOR
         </button>
       </div>
@@ -165,7 +165,7 @@
           <input type="text" id="input-sb-event-name" placeholder="e.g. VCT MASTERS MADRID 2026" style="width: 100%; padding: 0.8rem 1rem; background: #131720; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff; font-family: var(--font-heading); font-size: 1.1rem; box-sizing: border-box;">
         </div>
 
-        <button id="btn-sb-confirm-save" class="ts-btn btn-start" style="width: 100%; justify-content: center;">
+        <button id="btn-sb-confirm-save" class="btn-start-editor" style="width: 100%;">
           SAVE & FINISH
         </button>
       </div>

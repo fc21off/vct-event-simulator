@@ -124,6 +124,8 @@ function openCreateModal() {
 
   presetBtns.forEach(btn => {
     btn.onclick = () => {
+      presetBtns.forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
       const c = btn.getAttribute('data-count');
       if (inputCount) inputCount.value = c;
     };
