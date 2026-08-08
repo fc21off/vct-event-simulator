@@ -1,4 +1,5 @@
 import { generateGrandFinalDraft } from '../data/maps.js';
+import { simulateMapScore } from './match.js';
 
 /**
  * Initializes a detailed BO5 Grand Final match state.
@@ -23,40 +24,7 @@ export function createGrandFinalMatch(team1, team2) {
 }
 
 /**
- * Simulates a single Valorant map score realistically.
- * @param {Object} team1 
- * @param {Object} team2 
- * @returns {Object} { team1Score, team2Score, winner }
- */
-function simulateSingleMapScore(team1, team2) {
-  const r1 = (team1 && typeof team1.rating === 'number') ? team1.rating : 1000;
-  const r2 = (team2 && typeof team2.rating === 'number') ? team2.rating : 1000;
-
-  const winProb = 0.5 + (r1 - r2) * 0.001;
-  const isTeam1Win = Math.random() < Math.max(0.2, Math.min(0.8, winProb));
-
-  // Determine if match goes into Overtime (15% chance)
-  const isOvertime = Math.random() < 0.15;
-
-  let winnerScore, loserScore;
-  if (isOvertime) {
-    const otRounds = Math.floor(Math.random() * 3) + 1; // 1 to 3 OT pairs
-    winnerScore = 12 + (otRounds * 2);
-    loserScore = winnerScore - 2;
-  } else {
-    winnerScore = 13;
-    loserScore = Math.floor(Math.random() * 12); // 0 to 11
-  }
-
-  const team1Score = isTeam1Win ? winnerScore : loserScore;
-  const team2Score = isTeam1Win ? loserScore : winnerScore;
-  const winner = isTeam1Win ? team1 : team2;
-
-  return { team1Score, team2Score, winner };
-}
-
-/**
- * Simulates the next map in the BO5 Grand Final.
+ * Simulates the next map in the BO5 Grand Final using Elo win probability and realistic score distributions.
  * @param {Object} gfState 
  * @returns {Object} Updated gfState
  */
@@ -70,7 +38,7 @@ export function simulateNextGrandFinalMap(gfState) {
   const mapIndex = gf.currentMapIndex;
   const mapData = { ...gf.maps[mapIndex] };
 
-  const result = simulateSingleMapScore(gf.team1, gf.team2);
+  const result = simulateMapScore(gf.team1, gf.team2);
   mapData.team1Score = result.team1Score;
   mapData.team2Score = result.team2Score;
   mapData.winner = result.winner;
@@ -99,14 +67,14 @@ export function simulateNextGrandFinalMap(gfState) {
 }
 
 /**
- * Simulates all remaining maps until BO5 completes (first to 3 maps).
+ * Simulates all remaining maps in the Grand Final until a champion is crowned.
  * @param {Object} gfState 
- * @returns {Object} Updated gfState
+ * @returns {Object} Final gfState
  */
 export function simulateEntireGrandFinal(gfState) {
-  let currentGF = gfState;
-  while (!currentGF.isComplete && currentGF.currentMapIndex < 5) {
-    currentGF = simulateNextGrandFinalMap(currentGF);
+  let currentGf = gfState;
+  while (!currentGf.isComplete && currentGf.currentMapIndex < 5) {
+    currentGf = simulateNextGrandFinalMap(currentGf);
   }
-  return currentGF;
+  return currentGf;
 }

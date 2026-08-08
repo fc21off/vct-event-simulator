@@ -51,8 +51,15 @@ export function getSwissRoundMatchups(state) {
     }
   };
 
-  pairGroup(groups[0]);
-  pairGroup(groups[1]);
+  // Pair High matches (1-0 record) FIRST so they sit at indices 0 & 1
+  if (groups[1] && groups[1].length > 0) {
+    pairGroup(groups[1]);
+  }
+  
+  // Pair Low matches (0-1 record) SECOND so they sit at indices 2 & 3
+  if (groups[0] && groups[0].length > 0) {
+    pairGroup(groups[0]);
+  }
 
   return matchups;
 }
