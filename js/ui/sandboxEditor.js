@@ -119,7 +119,13 @@ function createDefaultStarterNodes() {
 function bindEditorEvents(viewport) {
   // Toolbar Buttons
   viewport.querySelector('#btn-sb-back').addEventListener('click', () => {
-    showScreen('menu');
+    import('../app.js').then(m => {
+      m.showScreen('sandbox-menu');
+      const container = document.getElementById('screen-sandbox-menu');
+      if (container) {
+        import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
+      }
+    });
   });
 
   viewport.querySelector('#btn-sb-add-gamebox').addEventListener('click', () => {
@@ -204,20 +210,45 @@ function finishAndValidateBracket() {
     return;
   }
 
-  const name = prompt('Enter a name for your Custom Tournament Event:', 'VCT CUSTOM TOURNAMENT');
-  if (!name || !name.trim()) return;
+  const modal = document.getElementById('modal-sandbox-save');
+  if (!modal) return;
 
-  const customEvent = {
-    id: `custom_${Date.now()}`,
-    name: name.trim(),
-    teamCount: editorState.teamCount,
-    nodes: editorState.nodes,
-    connections: editorState.connections
-  };
+  const btnClose = document.getElementById('btn-close-sb-save');
+  const btnConfirm = document.getElementById('btn-sb-confirm-save');
+  const inputName = document.getElementById('input-sb-event-name');
 
-  saveCustomEvent(customEvent);
-  alert(`Custom Event "${customEvent.name}" saved successfully!`);
-  showScreen('menu');
+  if (btnClose) {
+    btnClose.onclick = () => modal.classList.remove('active');
+  }
+
+  if (btnConfirm && inputName) {
+    inputName.value = `VCT CUSTOM BRACKET ${editorState.teamCount}T`;
+    btnConfirm.onclick = () => {
+      const name = inputName.value.trim();
+      if (!name) return;
+
+      const customEvent = {
+        id: `custom_${Date.now()}`,
+        name: name.toUpperCase(),
+        teamCount: editorState.teamCount,
+        nodes: editorState.nodes,
+        connections: editorState.connections
+      };
+
+      saveCustomEvent(customEvent);
+      modal.classList.remove('active');
+
+      import('../app.js').then(m => {
+        m.showScreen('sandbox-menu');
+        const container = document.getElementById('screen-sandbox-menu');
+        if (container) {
+          import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
+        }
+      });
+    };
+  }
+
+  modal.classList.add('active');
 }
 
 function getPortCoordinates(nodeId, portType) {

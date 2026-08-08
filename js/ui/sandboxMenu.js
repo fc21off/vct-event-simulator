@@ -50,7 +50,7 @@ export function renderSandboxMenu(container) {
     <p style="color: #999; font-size: 0.9rem;">Build a custom node-based bracket with Gameboxes, Winner/Loser paths, and Champion crowning.</p>
   `;
   createCard.addEventListener('click', () => {
-    promptTeamCountAndStartEditor();
+    openCreateModal();
   });
   cardsRow.appendChild(createCard);
 
@@ -113,24 +113,49 @@ export function renderSandboxMenu(container) {
   });
 }
 
-function promptTeamCountAndStartEditor() {
-  const countStr = prompt('How many teams should participate in this bracket? (e.g. 4, 8, 12, 16):', '8');
-  if (!countStr) return;
-  const count = parseInt(countStr, 10);
-  if (isNaN(count) || count < 2 || count > 32) {
-    alert('Please enter a valid team count between 2 and 32!');
-    return;
+function openCreateModal() {
+  const modal = document.getElementById('modal-sandbox-create');
+  if (!modal) return;
+
+  const btnClose = document.getElementById('btn-close-sb-create');
+  const btnStart = document.getElementById('btn-sb-start-editor');
+  const inputCount = document.getElementById('input-sb-custom-count');
+  const presetBtns = modal.querySelectorAll('.sb-team-count-preset');
+
+  presetBtns.forEach(btn => {
+    btn.onclick = () => {
+      const c = btn.getAttribute('data-count');
+      if (inputCount) inputCount.value = c;
+    };
+  });
+
+  if (btnClose) {
+    btnClose.onclick = () => modal.classList.remove('active');
   }
 
-  const screen = document.getElementById('screen-sandbox-editor');
-  if (screen) {
-    import('../app.js').then(m => {
-      m.showScreen('sandbox-editor');
-      requestAnimationFrame(() => {
-        initSandboxEditor(screen, count);
-      });
-    });
+  if (btnStart && inputCount) {
+    btnStart.onclick = () => {
+      const count = parseInt(inputCount.value, 10);
+      if (isNaN(count) || count < 2 || count > 32) {
+        alert('Please enter a valid team count between 2 and 32!');
+        return;
+      }
+
+      modal.classList.remove('active');
+
+      const screen = document.getElementById('screen-sandbox-editor');
+      if (screen) {
+        import('../app.js').then(m => {
+          m.showScreen('sandbox-editor');
+          setTimeout(() => {
+            initSandboxEditor(screen, count);
+          }, 50);
+        });
+      }
+    };
   }
+
+  modal.classList.add('active');
 }
 
 function launchCustomEvent(customEvent) {

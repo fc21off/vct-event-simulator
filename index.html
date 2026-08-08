@@ -125,6 +125,52 @@
       </div>
     </div>
 
+    <!-- SANDBOX CREATE EVENT MODAL -->
+    <div id="modal-sandbox-create" class="modal-overlay">
+      <div class="modal-content animate-slide-up" style="text-align: center; max-width: 480px; position: relative;">
+        <button id="btn-close-sb-create" class="gf-close-btn" title="Close">✕</button>
+        <div class="modal-header" style="justify-content: center; margin-bottom: 0.5rem;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.6rem; color: #bdb578; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">CREATE CUSTOM EVENT</h3>
+        </div>
+        <p class="modal-subtitle" style="font-size: 0.9rem; color: #999999; margin-bottom: 1.5rem;">Select participating team count for your bracket:</p>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+          <button class="ts-btn sb-team-count-preset" data-count="4">4 TEAMS</button>
+          <button class="ts-btn sb-team-count-preset" data-count="8">8 TEAMS</button>
+          <button class="ts-btn sb-team-count-preset" data-count="12">12 TEAMS</button>
+          <button class="ts-btn sb-team-count-preset" data-count="16">16 TEAMS</button>
+        </div>
+
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+          <label style="font-size: 0.8rem; color: #aaa; font-weight: 700; display: block; margin-bottom: 0.4rem;">OR ENTER CUSTOM COUNT (2 - 32):</label>
+          <input type="number" id="input-sb-custom-count" min="2" max="32" value="8" style="width: 100%; padding: 0.6rem 1rem; background: #131720; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff; font-family: var(--font-heading); font-size: 1rem; box-sizing: border-box;">
+        </div>
+
+        <button id="btn-sb-start-editor" class="ts-btn btn-start" style="width: 100%; justify-content: center;">
+          OPEN BRACKET EDITOR
+        </button>
+      </div>
+    </div>
+
+    <!-- SANDBOX SAVE EVENT MODAL -->
+    <div id="modal-sandbox-save" class="modal-overlay">
+      <div class="modal-content animate-slide-up" style="text-align: center; max-width: 480px; position: relative;">
+        <button id="btn-close-sb-save" class="gf-close-btn" title="Close">✕</button>
+        <div class="modal-header" style="justify-content: center; margin-bottom: 0.5rem;">
+          <h3 style="font-family: var(--font-heading); font-size: 1.6rem; color: #bdb578; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase;">SAVE TOURNAMENT BRACKET</h3>
+        </div>
+        <p class="modal-subtitle" style="font-size: 0.9rem; color: #999999; margin-bottom: 1.5rem;">Enter a name for your custom event:</p>
+        
+        <div style="margin-bottom: 1.5rem; text-align: left;">
+          <input type="text" id="input-sb-event-name" placeholder="e.g. VCT MASTERS MADRID 2026" style="width: 100%; padding: 0.8rem 1rem; background: #131720; border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: #fff; font-family: var(--font-heading); font-size: 1.1rem; box-sizing: border-box;">
+        </div>
+
+        <button id="btn-sb-confirm-save" class="ts-btn btn-start" style="width: 100%; justify-content: center;">
+          SAVE & FINISH
+        </button>
+      </div>
+    </div>
+
     <!-- GRAND FINALS SIMULATION MODAL -->
     <div id="modal-grand-finals" class="modal-overlay">
       <div class="gf-modal-content animate-slide-up" style="position: relative;">
