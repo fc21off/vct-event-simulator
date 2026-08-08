@@ -1,7 +1,7 @@
 import { getSavedCustomEvents, deleteCustomEvent } from '../data/sandbox.js';
 import { initSandboxEditor } from './sandboxEditor.js';
 import { setupTeamSelect } from './teamSelect.js';
-import { createSandboxTournament } from '../engine/sandboxEngine.js';
+import { createSandboxTournament, simulateNextStep, simulateAll } from '../engine/sandboxEngine.js';
 import { showScreen } from '../navigation.js';
 import { appState } from '../app.js';
 
@@ -166,8 +166,8 @@ function launchCustomEvent(customEvent) {
       appState.currentFormat = 'sandbox';
       appState.tournament = tournament;
       appState.tournamentModule = {
-        simulateNextStep: (t) => import('../engine/sandboxEngine.js').then(mod => mod.simulateNextStep(t)),
-        simulateAll: (t) => import('../engine/sandboxEngine.js').then(mod => mod.simulateAll(t))
+        simulateNextStep: (t) => simulateNextStep(t),
+        simulateAll: (t) => simulateAll(t)
       };
       m.showScreen('tournament');
       m.renderTournament();

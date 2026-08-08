@@ -248,9 +248,13 @@ function initTournamentControls() {
         renderGrandFinalModal(appState.grandFinalState, t.name);
       }
     } else if (appState.tournamentModule && t.stage !== 'complete') {
-      const result = appState.tournamentModule.simulateNextStep(appState.tournament);
-      appState.tournament = result.tournament;
-      renderTournament();
+      const res = appState.tournamentModule.simulateNextStep(appState.tournament);
+      Promise.resolve(res).then(result => {
+        if (result && result.tournament) {
+          appState.tournament = result.tournament;
+        }
+        renderTournament();
+      });
     }
   });
 
@@ -302,6 +306,17 @@ function initTournamentControls() {
     if (!appState.tournament || !appState.tournamentModule) return;
     const t = appState.tournament;
 
+    if (t.type === 'sandbox') {
+      const res = appState.tournamentModule.simulateAll(appState.tournament);
+      Promise.resolve(res).then(result => {
+        if (result && result.tournament) {
+          appState.tournament = result.tournament;
+        }
+        renderTournament();
+      });
+      return;
+    }
+
     let isStageComplete = false;
     if (t.stage === 'groups' && t.groups && t.groups.every(g => g.phase === 'complete')) {
       isStageComplete = true;
@@ -343,13 +358,17 @@ function initTournamentControls() {
   document.getElementById('btn-sim-all').addEventListener('click', () => {
     if (!appState.tournament || !appState.tournamentModule) return;
     if (appState.tournament.stage !== 'complete') {
-      const result = appState.tournamentModule.simulateAll(appState.tournament);
-      appState.tournament = result.tournament;
-      appState.tournament.viewingStage = 'complete';
-      renderTournament();
-      if (appState.tournament.champion) {
-        showChampionCelebration(appState.tournament.champion, appState.tournament.name);
-      }
+      const res = appState.tournamentModule.simulateAll(appState.tournament);
+      Promise.resolve(res).then(result => {
+        if (result && result.tournament) {
+          appState.tournament = result.tournament;
+        }
+        appState.tournament.viewingStage = 'complete';
+        renderTournament();
+        if (appState.tournament.champion) {
+          showChampionCelebration(appState.tournament.champion, appState.tournament.name);
+        }
+      });
     }
   });
 }
