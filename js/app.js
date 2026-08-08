@@ -142,26 +142,44 @@ export function renderTournament() {
     }
   }
   
-  // Check for champion
-  if (t.champion && viewingStage === 'complete') {
-    const celeb = document.getElementById('champion-celebration');
-    document.getElementById('champion-team-name').textContent = t.champion.name;
-    
-    // Set subtitle based on tournament name with host city
-    const subtitleEl = celeb.querySelector('.champion-subtitle');
-    if (subtitleEl) {
-      subtitleEl.textContent = t.name || 'VCT CHAMPION';
-    }
-    
-    celeb.classList.remove('hidden');
-    
-    // Allow clicking celebration to dismiss
-    celeb.onclick = () => {
-      celeb.classList.add('hidden');
-    };
-  } else {
-    document.getElementById('champion-celebration').classList.add('hidden');
+  // Always keep celebration overlay hidden during view renders (only shown on click or crowning)
+  const celeb = document.getElementById('champion-celebration');
+  if (celeb && !celeb.classList.contains('active-trigger')) {
+    celeb.classList.add('hidden');
   }
+}
+
+export function openGrandFinalModal() {
+  const gfModal = document.getElementById('modal-grand-finals');
+  if (!gfModal) return;
+
+  const t = appState.tournament;
+  if (!appState.grandFinalState && t && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2) {
+    appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
+  }
+
+  if (appState.grandFinalState) {
+    gfModal.classList.add('active');
+    renderGrandFinalModal(appState.grandFinalState, t ? t.name : '');
+  }
+}
+
+export function showChampionCelebration(champion, tournamentName) {
+  const celeb = document.getElementById('champion-celebration');
+  if (!celeb || !champion) return;
+
+  const teamNameEl = document.getElementById('champion-team-name');
+  if (teamNameEl) teamNameEl.textContent = champion.name;
+
+  const subtitleEl = celeb.querySelector('.champion-subtitle');
+  if (subtitleEl) {
+    subtitleEl.textContent = tournamentName || 'VCT CHAMPION';
+  }
+
+  celeb.classList.remove('hidden');
+  celeb.onclick = () => {
+    celeb.classList.add('hidden');
+  };
 }
 
 function handleGrandFinalCompletion() {
@@ -183,6 +201,7 @@ function handleGrandFinalCompletion() {
     const gfModal = document.getElementById('modal-grand-finals');
     if (gfModal) gfModal.classList.remove('active');
     renderTournament();
+    showChampionCelebration(t.champion, t.name);
   }, 1000);
 }
 

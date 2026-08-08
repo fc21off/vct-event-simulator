@@ -2,7 +2,7 @@ import { getTeamRating } from '../data/ratings.js';
 
 /**
  * Calculates win probability for Team 1 vs Team 2 based on Elo rating delta.
- * Uses standard Elo win probability formula: P(T1) = 1 / (1 + 10^((Elo2 - Elo1) / 400))
+ * Uses a steepened logistic formula (scale factor 260) so top-tier teams dominate lower teams.
  * @param {Object} team1 
  * @param {Object} team2 
  * @returns {number} Probability between 0.0 and 1.0
@@ -10,7 +10,8 @@ import { getTeamRating } from '../data/ratings.js';
 export function calculateWinProbability(team1, team2) {
   const r1 = getTeamRating(team1);
   const r2 = getTeamRating(team2);
-  return 1 / (1 + Math.pow(10, (r2 - r1) / 400));
+  const diff = r1 - r2;
+  return 1 / (1 + Math.pow(10, -diff / 260));
 }
 
 /**
@@ -23,15 +24,15 @@ export function simulateMapScore(team1, team2) {
   const prob1 = calculateWinProbability(team1, team2);
   const isTeam1Win = Math.random() < prob1;
   const winner = isTeam1Win ? team1 : team2;
-  const loser = isTeam1Win ? team1 : team2;
+  const loser = isTeam1Win ? team2 : team1;
 
   const r1 = getTeamRating(team1);
   const r2 = getTeamRating(team2);
   const ratingDiff = Math.abs(r1 - r2);
 
   // Expectation of loser rounds based on rating gap
-  // Close rating gap (e.g. 10 points diff) -> base loser rounds ~9-10
-  // Large rating gap (e.g. 300 points diff) -> base loser rounds ~5
+  // Close rating gap -> base loser rounds ~9-10
+  // Large rating gap -> base loser rounds ~5
   let baseLoserRounds = Math.max(4, 10 - Math.floor(ratingDiff / 65));
 
   // Add random variance (-3 to +2)
@@ -48,9 +49,16 @@ export function simulateMapScore(team1, team2) {
 
   // Suppress 13-0 or 13-1 blowouts (less than 2% chance overall)
   if (loserRounds < 2) {
-    if (Math.random() > 0.08) {
+    if (Math.random() > 0.05) {
       loserRounds = 3 + Math.floor(Math.random() * 3); // 3, 4, or 5
     }
+  }
+
+  // If underdog manages to win, ensure it's a tight score (13-11, 14-12, 13-9) instead of blowout
+  const winnerRating = getTeamRating(winner);
+  const loserRating = getTeamRating(loser);
+  if (winnerRating < loserRating) {
+    loserRounds = Math.max(8, loserRounds);
   }
 
   // Handle Overtime (14-12, 16-14) or close 13-11 matches

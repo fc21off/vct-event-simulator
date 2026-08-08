@@ -1,3 +1,5 @@
+import { openGrandFinalModal, showChampionCelebration } from '../app.js';
+
 /**
  * Renders the Double-Elimination Playoff Bracket matching user specs:
  * - Vertical side labels (UPPER BRACKET / LOWER BRACKET) with fade dividers on the left.
@@ -120,7 +122,7 @@ export function renderBracket(container, bracketState) {
 
   wrapper.appendChild(leftSide);
 
-  // --- RIGHT SIDE: SQUARE WINNER BOX ONLY (CLEAN TYPOGRAPHY, NO GLOW BOX OVERLAYS!) ---
+  // --- RIGHT SIDE: SQUARE WINNER BOX ONLY ---
   const rightWinnerBox = document.createElement('div');
   rightWinnerBox.className = 'playoff-winner-container';
 
@@ -134,6 +136,11 @@ export function renderBracket(container, bracketState) {
         <div class="winner-sub-lbl">WORLD CHAMPION</div>
       </div>
     `;
+    rightWinnerBox.style.cursor = 'pointer';
+    rightWinnerBox.title = 'Click to view Champion Celebration';
+    rightWinnerBox.addEventListener('click', () => {
+      showChampionCelebration(bracketState.champion, bracketState.name);
+    });
   } else {
     rightWinnerBox.innerHTML = `
       <h3 class="winner-box-title">${champTitle}</h3>
@@ -154,6 +161,14 @@ function createPlayoffMatchBox(match, isGrandFinal = false) {
   const box = document.createElement('div');
   const isPlayed = match && (match.played || match.winner);
   box.className = `playoff-match-box ${isGrandFinal ? 'grand-final-highlight' : ''} ${isPlayed ? 'match-played' : ''}`;
+
+  if (isGrandFinal) {
+    box.style.cursor = 'pointer';
+    box.title = 'Click to inspect Grand Final maps & scores';
+    box.addEventListener('click', () => {
+      openGrandFinalModal();
+    });
+  }
 
   if (!match) {
     box.innerHTML = `
