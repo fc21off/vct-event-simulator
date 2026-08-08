@@ -1,44 +1,238 @@
 import { openGrandFinalModal, showChampionCelebration } from '../app.js';
 
 /**
- * Renders a custom Sandbox Tournament Bracket view matching the node graph layout.
+ * Renders a custom Sandbox Tournament Bracket view using the official VCT Esports layout.
  * @param {HTMLElement} container 
  * @param {Object} tournament 
  */
 export function renderSandboxView(container, tournament) {
   container.innerHTML = '';
 
-  const viewport = document.createElement('div');
-  viewport.className = 'sandbox-viewport';
-  viewport.style.cssText = 'position: relative; width: 100%; min-height: 700px; height: calc(100vh - 120px); background: #090c10; background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px); background-size: 24px 24px; overflow: auto; user-select: none;';
+  const wrapper = document.createElement('div');
+  wrapper.className = 'playoff-viewport-container';
 
-  const canvasArea = document.createElement('div');
-  canvasArea.id = 'live-sandbox-canvas';
-  canvasArea.style.cssText = 'position: relative; min-width: 1200px; min-height: 800px; width: 100%; height: 100%;';
+  // --- LEFT SIDE: UPPER & LOWER BRACKETS ---
+  const leftSide = document.createElement('div');
+  leftSide.className = 'playoff-brackets-left';
 
-  // SVG Layer for Live Wires
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'sandbox-svg-layer');
-  svg.id = 'live-sandbox-svg';
-  svg.style.cssText = 'position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2;';
-  canvasArea.appendChild(svg);
+  // Categorize Gameboxes into Upper, Lower, and Grand Final
+  const gameboxes = (tournament.nodes || []).filter(n => n.type === 'gamebox');
+  const connections = tournament.connections || [];
+  const champNode = (tournament.nodes || []).find(n => n.type === 'champion');
 
-  // Nodes Layer
-  const nodesLayer = document.createElement('div');
-  nodesLayer.id = 'live-sandbox-nodes';
-  nodesLayer.style.cssText = 'position: absolute; inset: 0; width: 100%; height: 100%; z-index: 5;';
-  canvasArea.appendChild(nodesLayer);
+  // Identify Grand Final Node (connected to Champion)
+  let gfNodeId = null;
+  if (champNode) {
+    const connToChamp = connections.find(c => c.toNodeId === champNode.id);
+    if (connToChamp) gfNodeId = connToChamp.fromNodeId;
+  }
 
-  viewport.appendChild(canvasArea);
-  container.appendChild(viewport);
+  // Calculate Depth Levels for Gameboxes
+  const nodeLevels = {};
+  function calculateLevel(nodeId, visited = new Set()) {
+    if (visited.has(nodeId)) return 1;
+    visited.add(nodeId);
 
-  // Render Nodes & Wires after DOM attachment
-  renderLiveNodes(nodesLayer, tournament);
+    const incomingConns = connections.filter(c => c.toNodeId === nodeId);
+    if (incomingConns.length === 0) return 1;
+
+    let maxParentLevel = 0;
+    incomingConns.forEach(c => {
+      const sourceNode = (tournament.nodes || []).find(n => n.id === c.fromNodeId);
+      if (sourceNode && sourceNode.type === 'gamebox') {
+        const parentLvl = calculateLevel(sourceNode.id, new Set(visited));
+        if (parentLvl > maxParentLevel) maxParentLevel = parentLvl;
+      }
+    });
+    return maxParentLevel + 1;
+  }
+
+  gameboxes.forEach(gb => {
+    nodeLevels[gb.id] = calculateLevel(gb.id);
+  });
+
+  // Determine Upper vs Lower Bracket assignment
+  const upperGameboxes = [];
+  const lowerGameboxes = [];
+  let grandFinalNode = null;
+
+  gameboxes.forEach(gb => {
+    if (gb.id === gfNodeId || gb.isGrandFinal) {
+      grandFinalNode = gb;
+      gb.isGrandFinal = true;
+    } else {
+      // Check if fed by any Loser path
+      const isLower = connections.some(c => c.toNodeId === gb.id && c.fromPort === 'loser');
+      if (isLower) {
+        lowerGameboxes.push(gb);
+      } else {
+        upperGameboxes.push(gb);
+      }
+    }
+  });
+
+  // Fallback: If all are upper and no gf detected, last upper node is GF
+  if (!grandFinalNode && upperGameboxes.length > 0) {
+    upperGameboxes.sort((a, b) => nodeLevels[b.id] - nodeLevels[a.id]);
+    grandFinalNode = upperGameboxes.shift();
+    grandFinalNode.isGrandFinal = true;
+  }
+
+  // Group Upper Gameboxes into Level Rounds
+  const upperLevelsMap = {};
+  upperGameboxes.forEach(gb => {
+    const lvl = nodeLevels[gb.id] || 1;
+    if (!upperLevelsMap[lvl]) upperLevelsMap[lvl] = [];
+    upperLevelsMap[lvl].push(gb);
+  });
+
+  const upperLevelKeys = Object.keys(upperLevelsMap).sort((a, b) => Number(a) - Number(b));
+  const upperRoundTitles = ['UPPER QUARTERFINALS', 'UPPER SEMIFINALS', 'UPPER FINAL'];
+
+  // 1. UPPER BRACKET SECTION
+  const upperWrap = document.createElement('div');
+  upperWrap.className = 'playoff-section-wrap';
+  upperWrap.innerHTML = `
+    <div class="playoff-side-label-wrap">
+      <div class="playoff-side-label">UPPER BRACKET</div>
+      <div class="playoff-side-divider"></div>
+    </div>
+  `;
+
+  const upperFlow = document.createElement('div');
+  upperFlow.className = 'playoff-rounds-flow';
+
+  upperLevelKeys.forEach((lvl, idx) => {
+    const rCol = document.createElement('div');
+    rCol.className = 'playoff-round-col';
+    
+    const colTitle = document.createElement('div');
+    colTitle.className = 'playoff-col-title';
+    colTitle.textContent = upperRoundTitles[idx] || `UPPER ROUND ${idx + 1}`;
+    rCol.appendChild(colTitle);
+
+    const matchesWrap = document.createElement('div');
+    matchesWrap.className = 'playoff-matches-wrap';
+    const matchesInRound = upperLevelsMap[lvl];
+    matchesWrap.style.justifyContent = matchesInRound.length === 1 ? 'center' : 'space-around';
+
+    matchesInRound.forEach(m => {
+      matchesWrap.appendChild(createPlayoffMatchBox(m));
+    });
+    rCol.appendChild(matchesWrap);
+    upperFlow.appendChild(rCol);
+  });
+
+  // GRAND FINAL COLUMN AT FAR RIGHT OF UPPER ROW
+  const gfCol = document.createElement('div');
+  gfCol.className = 'playoff-round-col';
   
-  // Timeout ensures getBoundingClientRect has valid rects for SVG wires
-  setTimeout(() => {
-    renderLiveWires(svg, canvasArea, tournament);
-  }, 30);
+  const gfColTitle = document.createElement('div');
+  gfColTitle.className = 'playoff-col-title';
+  gfColTitle.style.cssText = 'color: #bdb578; font-weight: 900;';
+  gfColTitle.textContent = 'GRAND FINAL';
+  gfCol.appendChild(gfColTitle);
+
+  const gfMatchesWrap = document.createElement('div');
+  gfMatchesWrap.className = 'playoff-matches-wrap';
+  gfMatchesWrap.style.justifyContent = 'center';
+
+  if (grandFinalNode) {
+    gfMatchesWrap.appendChild(createPlayoffMatchBox(grandFinalNode, true));
+  } else {
+    gfMatchesWrap.appendChild(createPlayoffMatchBox(null, true));
+  }
+  gfCol.appendChild(gfMatchesWrap);
+  upperFlow.appendChild(gfCol);
+
+  upperWrap.appendChild(upperFlow);
+  leftSide.appendChild(upperWrap);
+
+  // 2. LOWER BRACKET SECTION (If Lower matches exist)
+  if (lowerGameboxes.length > 0) {
+    const lowerLevelsMap = {};
+    lowerGameboxes.forEach(gb => {
+      const lvl = nodeLevels[gb.id] || 1;
+      if (!lowerLevelsMap[lvl]) lowerLevelsMap[lvl] = [];
+      lowerLevelsMap[lvl].push(gb);
+    });
+
+    const lowerLevelKeys = Object.keys(lowerLevelsMap).sort((a, b) => Number(a) - Number(b));
+    const lowerRoundTitles = ['LOWER ROUND 1', 'LOWER ROUND 2', 'LOWER SEMIFINAL', 'LOWER FINAL'];
+
+    const lowerWrap = document.createElement('div');
+    lowerWrap.className = 'playoff-section-wrap';
+    lowerWrap.innerHTML = `
+      <div class="playoff-side-label-wrap">
+        <div class="playoff-side-label">LOWER BRACKET</div>
+        <div class="playoff-side-divider"></div>
+      </div>
+    `;
+
+    const lowerFlow = document.createElement('div');
+    lowerFlow.className = 'playoff-rounds-flow';
+
+    lowerLevelKeys.forEach((lvl, idx) => {
+      const rCol = document.createElement('div');
+      rCol.className = 'playoff-round-col';
+      
+      const colTitle = document.createElement('div');
+      colTitle.className = 'playoff-col-title';
+      colTitle.textContent = lowerRoundTitles[idx] || `LOWER ROUND ${idx + 1}`;
+      rCol.appendChild(colTitle);
+
+      const matchesWrap = document.createElement('div');
+      matchesWrap.className = 'playoff-matches-wrap';
+      const matchesInRound = lowerLevelsMap[lvl];
+      matchesWrap.style.justifyContent = matchesInRound.length === 1 ? 'center' : 'space-around';
+
+      matchesInRound.forEach(m => {
+        matchesWrap.appendChild(createPlayoffMatchBox(m));
+      });
+      rCol.appendChild(matchesWrap);
+      lowerFlow.appendChild(rCol);
+    });
+
+    lowerWrap.appendChild(lowerFlow);
+    leftSide.appendChild(lowerWrap);
+  }
+
+  wrapper.appendChild(leftSide);
+
+  // --- RIGHT SIDE: GOLDEN WINNER DISPLAY BOX ---
+  const rightWinnerBox = document.createElement('div');
+  rightWinnerBox.className = 'playoff-winner-container';
+
+  const champTitle = `${tournament.name || 'CUSTOM BRACKET'} WINNER`;
+
+  if (tournament.champion) {
+    const champ = tournament.champion;
+    const logoHtml = champ.logo ? `<img src="${champ.logo}" alt="${champ.name}" class="winner-team-logo" />` : '';
+
+    rightWinnerBox.innerHTML = `
+      <h3 class="winner-box-title">${champTitle}</h3>
+      <div class="winner-trophy-display">
+        ${logoHtml}
+        <div class="winner-team-display">${champ.tag || champ.name}</div>
+        <div class="winner-sub-lbl">CUSTOM CHAMPION</div>
+      </div>
+    `;
+    rightWinnerBox.style.cursor = 'pointer';
+    rightWinnerBox.title = 'Click to view Champion Celebration';
+    rightWinnerBox.addEventListener('click', () => {
+      showChampionCelebration(tournament.champion, tournament.name);
+    });
+  } else {
+    rightWinnerBox.innerHTML = `
+      <h3 class="winner-box-title">${champTitle}</h3>
+      <div class="winner-tbd-lbl">
+        WINNER TBD
+      </div>
+    `;
+  }
+
+  wrapper.appendChild(rightWinnerBox);
+  container.appendChild(wrapper);
 
   // Check if champion just won and celebrate!
   if (tournament.champion && !tournament.celebrated) {
@@ -49,201 +243,58 @@ export function renderSandboxView(container, tournament) {
   }
 }
 
-function renderLiveNodes(layer, tournament) {
-  layer.innerHTML = '';
+/**
+ * Creates an official VCT match box element.
+ */
+function createPlayoffMatchBox(match, isGrandFinal = false) {
+  const box = document.createElement('div');
+  const isPlayed = match && (match.played || match.winner);
+  box.className = `playoff-match-box ${isGrandFinal ? 'grand-final-highlight' : ''} ${isPlayed ? 'match-played' : ''}`;
 
-  tournament.nodes.forEach(n => {
-    const nodeEl = document.createElement('div');
-    const isGF = n.isGrandFinal;
-    nodeEl.id = `live-node-${n.id}`;
-    nodeEl.className = `sb-node node-${n.type} ${isGF ? 'node-grandfinal' : ''}`;
-    nodeEl.style.left = `${n.x}px`;
-    nodeEl.style.top = `${n.y}px`;
-    nodeEl.style.cursor = 'default';
-
-    // Header
-    const header = document.createElement('div');
-    header.className = 'sb-node-header';
-    header.innerHTML = `<span class="sb-node-title">${isGF ? '🏆 GRAND FINAL (BO5)' : (n.label || n.type.toUpperCase())}</span>`;
-    nodeEl.appendChild(header);
-
-    if (n.type === 'gamebox') {
-      const isPlayed = n.played;
-      const t1 = n.team1;
-      const t2 = n.team2;
-
-      const t1Win = isPlayed && n.winner && t1 && n.winner.id === t1.id;
-      const t2Win = isPlayed && n.winner && t2 && n.winner.id === t2.id;
-      const t1Lose = isPlayed && n.winner && t1 && n.winner.id !== t1.id;
-      const t2Lose = isPlayed && n.winner && t2 && n.winner.id !== t2.id;
-
-      const t1Name = t1 ? (t1.tag || t1.name) : 'TBD';
-      const t2Name = t2 ? (t2.tag || t2.name) : 'TBD';
-
-      const t1Score = n.team1Score !== null && n.team1Score !== undefined ? n.team1Score : '-';
-      const t2Score = n.team2Score !== null && n.team2Score !== undefined ? n.team2Score : '-';
-
-      const t1Logo = t1 && t1.logo ? `<img src="${t1.logo}" alt="" style="width: 18px; height: 18px; object-fit: contain; margin-right: 6px;" />` : '';
-      const t2Logo = t2 && t2.logo ? `<img src="${t2.logo}" alt="" style="width: 18px; height: 18px; object-fit: contain; margin-right: 6px;" />` : '';
-
-      // In Ports (Left)
-      const in1 = document.createElement('div');
-      in1.className = 'sb-port port-input port-in1';
-      nodeEl.appendChild(in1);
-
-      const in2 = document.createElement('div');
-      in2.className = 'sb-port port-input port-in2';
-      nodeEl.appendChild(in2);
-
-      // Out Ports (Right)
-      const winPort = document.createElement('div');
-      winPort.className = 'sb-port port-winner';
-      nodeEl.appendChild(winPort);
-
-      const losePort = document.createElement('div');
-      losePort.className = 'sb-port port-loser';
-      nodeEl.appendChild(losePort);
-
-      // Match Card
-      const card = document.createElement('div');
-      card.style.cssText = 'background: rgba(0,0,0,0.5); border-radius: 4px; padding: 0.5rem; margin-top: 0.3rem; border: 1px solid rgba(255,255,255,0.1);';
-      card.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.2rem 0; ${t1Win ? 'color: #00ff66; font-weight: 900;' : (t1Lose ? 'color: #777;' : 'color: #fff;')}">
-          <div style="display: flex; align-items: center;">${t1Logo}<span>${t1Name}</span></div>
-          <span style="font-weight: 900; font-family: var(--font-heading); margin-left: 0.5rem;">${t1Score}</span>
-        </div>
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.2rem 0; ${t2Win ? 'color: #00ff66; font-weight: 900;' : (t2Lose ? 'color: #777;' : 'color: #fff;')}">
-          <div style="display: flex; align-items: center;">${t2Logo}<span>${t2Name}</span></div>
-          <span style="font-weight: 900; font-family: var(--font-heading); margin-left: 0.5rem;">${t2Score}</span>
-        </div>
-      `;
-
-      if (isGF) {
-        card.style.cursor = 'pointer';
-        card.title = 'Click to inspect Grand Final Match';
-        card.addEventListener('click', () => {
-          openGrandFinalModal();
-        });
-      }
-
-      nodeEl.appendChild(card);
-
-    } else if (n.type === 'teambox') {
-      const teamObj = n.team1 || n.team;
-      const logoHtml = teamObj && teamObj.logo ? `<img src="${teamObj.logo}" alt="" style="width: 20px; height: 20px; object-fit: contain; margin-right: 6px;" />` : '';
-      const name = teamObj ? (teamObj.tag || teamObj.name) : `SEED #${n.seedIndex || 1}`;
-      const elo = teamObj ? `ELO ${teamObj.elo}` : '';
-
-      nodeEl.innerHTML = `
-        <div class="sb-node-header" style="margin-bottom: 0.2rem;">
-          <span class="sb-node-title" style="font-size: 0.75rem; color: #00aeef;">SEED #${n.seedIndex || 1}</span>
-        </div>
-        <div style="display: flex; align-items: center; background: rgba(0,174,239,0.1); border: 1px solid rgba(0,174,239,0.3); padding: 0.4rem 0.6rem; border-radius: 4px;">
-          ${logoHtml}
-          <div>
-            <div style="font-weight: 800; color: #fff; font-size: 0.85rem;">${name}</div>
-            <div style="font-size: 0.65rem; color: #aaa;">${elo}</div>
-          </div>
-        </div>
-        <div class="sb-port port-out" style="right: -9px; top: 40%; background: #00aeef; border-color: #00aeef;"></div>
-      `;
-
-    } else if (n.type === 'champion') {
-      const champ = tournament.champion;
-      const inPort = document.createElement('div');
-      inPort.className = 'sb-port port-input port-in1';
-      inPort.style.top = '40%';
-      nodeEl.appendChild(inPort);
-
-      const champCard = document.createElement('div');
-      champCard.className = 'sb-node-feed-card';
-      if (champ) {
-        champCard.innerHTML = `
-          <div style="font-size: 1.2rem; margin-bottom: 0.2rem;">🏆</div>
-          <div style="font-weight: 900; color: #bdb578; font-size: 1rem;">${champ.tag || champ.name}</div>
-          <div style="font-size: 0.7rem; color: #fff; font-weight: 700;">TOURNAMENT CHAMPION</div>
-        `;
-        nodeEl.style.borderColor = '#bdb578';
-        nodeEl.style.boxShadow = '0 0 25px rgba(189, 181, 120, 0.6)';
-      } else {
-        champCard.innerHTML = `
-          <div class="feed-champ-title">CROWNS CHAMPION</div>
-          <div class="feed-champ-source">TBD</div>
-        `;
-      }
-      nodeEl.appendChild(champCard);
-
-    } else if (n.type === 'elimination') {
-      const inPort = document.createElement('div');
-      inPort.className = 'sb-port port-input port-in1';
-      inPort.style.top = '40%';
-      nodeEl.appendChild(inPort);
-
-      // Collect eliminated teams
-      const elimTeams = tournament.nodes
-        .filter(gb => gb.type === 'gamebox' && gb.played && gb.loser)
-        .map(gb => gb.loser.tag || gb.loser.name);
-
-      const elimCard = document.createElement('div');
-      elimCard.className = 'sb-node-feed-card';
-      elimCard.innerHTML = `
-        <div class="feed-elim-title">ELIMINATED TEAMS</div>
-        <div class="feed-elim-source" style="font-size: 0.75rem; font-weight: 700;">
-          ${elimTeams.length > 0 ? elimTeams.join(', ') : 'NONE YET'}
-        </div>
-      `;
-      nodeEl.appendChild(elimCard);
-    }
-
-    layer.appendChild(nodeEl);
-  });
-}
-
-function getPortCoordinatesInView(canvasArea, nodeId, portType) {
-  const nodeEl = document.getElementById(`live-node-${nodeId}`);
-  if (!nodeEl || !canvasArea) return { x: 0, y: 0 };
-
-  const canvasRect = canvasArea.getBoundingClientRect();
-  const portEl = nodeEl.querySelector(`.port-${portType}`);
-
-  if (portEl) {
-    const portRect = portEl.getBoundingClientRect();
-    return {
-      x: portRect.left + portRect.width / 2 - canvasRect.left,
-      y: portRect.top + portRect.height / 2 - canvasRect.top
-    };
+  if (isGrandFinal) {
+    box.style.cursor = 'pointer';
+    box.title = 'Click to inspect Grand Final maps & scores';
+    box.addEventListener('click', () => {
+      openGrandFinalModal();
+    });
   }
 
-  return { x: 0, y: 0 };
-}
+  if (!match) {
+    box.innerHTML = `
+      <div class="playoff-match-row"><span class="playoff-team-name" style="opacity:0.4;">TBD</span><span class="playoff-score-num">-</span></div>
+      <div class="playoff-match-row"><span class="playoff-team-name" style="opacity:0.4;">TBD</span><span class="playoff-score-num">-</span></div>
+    `;
+    return box;
+  }
 
-function renderLiveWires(svg, canvasArea, tournament) {
-  svg.innerHTML = '';
-  if (!tournament.connections) return;
+  const t1 = match.team1;
+  const t2 = match.team2;
 
-  tournament.connections.forEach(c => {
-    const start = getPortCoordinatesInView(canvasArea, c.fromNodeId, c.fromPort);
-    const end = getPortCoordinatesInView(canvasArea, c.toNodeId, c.toPort);
+  const t1Win = isPlayed && match.winner && t1 && match.winner.id === t1.id;
+  const t2Win = isPlayed && match.winner && t2 && match.winner.id === t2.id;
 
-    if (start.x === 0 && start.y === 0 || end.x === 0 && end.y === 0) return;
+  const t1Lose = isPlayed && match.winner && t1 && match.winner.id !== t1.id;
+  const t2Lose = isPlayed && match.winner && t2 && match.winner.id !== t2.id;
 
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const sourceNode = tournament.nodes.find(n => n.id === c.fromNodeId);
+  const t1Name = t1 ? (t1.tag || t1.name) : 'TBD';
+  const t2Name = t2 ? (t2.tag || t2.name) : 'TBD';
 
-    let cableClass = 'cable-team';
-    if (c.fromPort === 'winner') cableClass = 'cable-winner';
-    else if (c.fromPort === 'loser') cableClass = 'cable-loser';
+  const t1Score = match.team1Score !== undefined && match.team1Score !== null ? match.team1Score : '-';
+  const t2Score = match.team2Score !== undefined && match.team2Score !== null ? match.team2Score : '-';
 
-    if (sourceNode && sourceNode.played) {
-      cableClass += ' cable-played';
-    }
+  const t1Logo = t1 && t1.logo ? `<img src="${t1.logo}" alt="" class="match-team-logo" />` : '';
+  const t2Logo = t2 && t2.logo ? `<img src="${t2.logo}" alt="" class="match-team-logo" />` : '';
 
-    path.setAttribute('class', `sandbox-cable ${cableClass}`);
+  box.innerHTML = `
+    <div class="playoff-match-row">
+      <span class="playoff-team-name ${t1Win ? 'winner-text' : (t1Lose ? 'loser-text' : '')}">${t1Logo}${t1Name}</span>
+      <span class="playoff-score-num ${t1Win ? 'winner-score' : (t1Lose ? 'loser-score' : '')}">${t1Score}</span>
+    </div>
+    <div class="playoff-match-row">
+      <span class="playoff-team-name ${t2Win ? 'winner-text' : (t2Lose ? 'loser-text' : '')}">${t2Logo}${t2Name}</span>
+      <span class="playoff-score-num ${t2Win ? 'winner-score' : (t2Lose ? 'loser-score' : '')}">${t2Score}</span>
+    </div>
+  `;
 
-    const dx = Math.abs(end.x - start.x) * 0.5;
-    const d = `M ${start.x} ${start.y} C ${start.x + dx} ${start.y}, ${end.x - dx} ${end.y}, ${end.x} ${end.y}`;
-    path.setAttribute('d', d);
-
-    svg.appendChild(path);
-  });
+  return box;
 }
