@@ -313,7 +313,7 @@ function renderNodes() {
       const gfBtn = document.createElement('button');
       gfBtn.className = 'sb-tool-btn';
       gfBtn.style.cssText = 'width: 100%; font-size: 0.75rem; padding: 0.3rem; margin-top: 0.4rem;';
-      gfBtn.textContent = n.isGrandFinal ? '★ GRAND FINAL (BO5)' : 'Make Grand Final';
+      gfBtn.textContent = n.isGrandFinal ? 'GRAND FINAL (BO5)' : 'Make Grand Final';
       gfBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         n.isGrandFinal = !n.isGrandFinal;
