@@ -18,18 +18,14 @@ export function createSwissStage(teams) {
 
 /**
  * Determines pairings for the next Swiss round.
+ * - Round 1 (0-0): NO REGIONAL MATCHUPS ALLOWED (t1.region !== t2.region). Randomly drawn.
+ * - Rounds 2 & 3 (1-0, 0-1, 1-1): NO REMATCHES ALLOWED (!hasPlayed(t1, t2)). Regional matches allowed. Randomly drawn.
  * @param {Object} state 
  * @returns {Array} Array of [team1, team2] pairs
  */
 export function getSwissRoundMatchups(state) {
   const activeTeams = state.teams.filter(t => t.status === 'active');
   const matchups = [];
-  
-  // Group by record (wins)
-  const groups = {
-    0: activeTeams.filter(t => t.wins === 0),
-    1: activeTeams.filter(t => t.wins === 1)
-  };
 
   const hasPlayed = (t1, t2) => {
     return state.matchHistory.some(pair => 
@@ -38,27 +34,69 @@ export function getSwissRoundMatchups(state) {
     );
   };
 
-  const pairGroup = (group) => {
-    let unassigned = [...group].sort(() => 0.5 - Math.random());
-    while (unassigned.length >= 2) {
-      let t1 = unassigned.shift();
-      let t2Index = unassigned.findIndex(t => !hasPlayed(t1, t));
-      
-      if (t2Index === -1) t2Index = 0; // Fallback if all have played
-      
-      let t2 = unassigned.splice(t2Index, 1)[0];
-      matchups.push([t1, t2]);
+  /**
+   * Random pairing solver with backtracking/retry logic to satisfy constraints.
+   * @param {Array} teamList 
+   * @param {Function} isValidPair 
+   * @returns {Array} Array of [team1, team2] pairs
+   */
+  const solvePairings = (teamList, isValidPair) => {
+    for (let attempt = 0; attempt < 200; attempt++) {
+      let pool = [...teamList].sort(() => 0.5 - Math.random());
+      let pairs = [];
+      let valid = true;
+
+      while (pool.length >= 2) {
+        let t1 = pool.shift();
+        let candidates = pool.filter(t2 => isValidPair(t1, t2));
+        if (candidates.length === 0) {
+          valid = false;
+          break;
+        }
+        let t2 = candidates[Math.floor(Math.random() * candidates.length)];
+        let t2Index = pool.indexOf(t2);
+        pool.splice(t2Index, 1);
+        pairs.push([t1, t2]);
+      }
+
+      if (valid && pool.length === 0) {
+        return pairs;
+      }
     }
+
+    // Fallback if constraint solver exhausted (safety guarantee)
+    let fallbackPool = [...teamList].sort(() => 0.5 - Math.random());
+    let pairs = [];
+    while (fallbackPool.length >= 2) {
+      pairs.push([fallbackPool.shift(), fallbackPool.shift()]);
+    }
+    return pairs;
   };
 
-  // Pair High matches (1-0 record) FIRST so they sit at indices 0 & 1
-  if (groups[1] && groups[1].length > 0) {
-    pairGroup(groups[1]);
+  if (state.currentRound === 0) {
+    // ROUND 1 (0-0): NO REGIONAL MATCHUPS ALLOWED!
+    return solvePairings(activeTeams, (t1, t2) => t1.region !== t2.region);
   }
-  
-  // Pair Low matches (0-1 record) SECOND so they sit at indices 2 & 3
-  if (groups[0] && groups[0].length > 0) {
-    pairGroup(groups[0]);
+
+  // ROUND 2 (HIGH 1-0 MATCHES): NO REMATCHES ALLOWED!
+  const highTeams = activeTeams.filter(t => t.wins === 1 && t.losses === 0);
+  if (highTeams.length > 0) {
+    const highPairs = solvePairings(highTeams, (t1, t2) => !hasPlayed(t1, t2));
+    matchups.push(...highPairs);
+  }
+
+  // ROUND 2 (LOW 0-1 MATCHES): NO REMATCHES ALLOWED!
+  const lowTeams = activeTeams.filter(t => t.wins === 0 && t.losses === 1);
+  if (lowTeams.length > 0) {
+    const lowPairs = solvePairings(lowTeams, (t1, t2) => !hasPlayed(t1, t2));
+    matchups.push(...lowPairs);
+  }
+
+  // ROUND 3 (DECIDERS 1-1 MATCHES): NO REMATCHES ALLOWED!
+  const deciderTeams = activeTeams.filter(t => t.wins === 1 && t.losses === 1);
+  if (deciderTeams.length > 0) {
+    const deciderPairs = solvePairings(deciderTeams, (t1, t2) => !hasPlayed(t1, t2));
+    matchups.push(...deciderPairs);
   }
 
   return matchups;
