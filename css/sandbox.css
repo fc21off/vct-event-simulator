@@ -57,7 +57,16 @@
   position: relative;
   width: 100%;
   height: calc(100vh - 130px);
-  overflow: hidden;
+  overflow: auto;
+}
+
+#sb-zoom-container {
+  position: relative;
+  width: 3500px;
+  height: 2500px;
+  min-width: 3500px;
+  min-height: 2500px;
+  transform-origin: 0 0;
 }
 
 .sandbox-svg-layer {

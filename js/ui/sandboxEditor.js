@@ -58,18 +58,22 @@ export function initSandboxEditor(container, teamCount = 8) {
   canvasArea.className = 'sandbox-canvas-area';
   canvasArea.id = 'sb-canvas-area';
 
+  const zoomContainer = document.createElement('div');
+  zoomContainer.id = 'sb-zoom-container';
+
   // SVG Layer for Wires
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('class', 'sandbox-svg-layer');
   svg.id = 'sb-svg-layer';
-  canvasArea.appendChild(svg);
+  zoomContainer.appendChild(svg);
 
   // Nodes Layer
   const nodesLayer = document.createElement('div');
   nodesLayer.className = 'sandbox-nodes-layer';
   nodesLayer.id = 'sb-nodes-layer';
-  canvasArea.appendChild(nodesLayer);
+  zoomContainer.appendChild(nodesLayer);
 
+  canvasArea.appendChild(zoomContainer);
   viewport.appendChild(canvasArea);
 
   // Bottom Toolbar
@@ -146,18 +150,12 @@ function createDefaultStarterNodes() {
 }
 
 function applyZoomTransform() {
-  const nodesLayer = document.getElementById('sb-nodes-layer');
-  const svgLayer = document.getElementById('sb-svg-layer');
+  const zoomContainer = document.getElementById('sb-zoom-container');
   const zoomLabel = document.getElementById('sb-zoom-level');
 
-  const transformStr = `scale(${editorState.zoom})`;
-  if (nodesLayer) {
-    nodesLayer.style.transform = transformStr;
-    nodesLayer.style.transformOrigin = '0 0';
-  }
-  if (svgLayer) {
-    svgLayer.style.transform = transformStr;
-    svgLayer.style.transformOrigin = '0 0';
+  if (zoomContainer) {
+    zoomContainer.style.transform = `scale(${editorState.zoom})`;
+    zoomContainer.style.transformOrigin = '0 0';
   }
   if (zoomLabel) {
     zoomLabel.textContent = `${Math.round(editorState.zoom * 100)}%`;
@@ -275,7 +273,9 @@ function bindEditorEvents(viewport) {
 
   // Mousemove for dragging nodes or cable drawing
   canvasArea.addEventListener('mousemove', (e) => {
-    const rect = canvasArea.getBoundingClientRect();
+    const zoomContainer = document.getElementById('sb-zoom-container');
+    if (!zoomContainer) return;
+    const rect = zoomContainer.getBoundingClientRect();
     const zoom = editorState.zoom || 1.0;
 
     if (editorState.draggedNode) {
@@ -358,18 +358,18 @@ function finishAndValidateBracket() {
 
 function getPortCoordinates(nodeId, portType) {
   const nodeEl = document.getElementById(`node-${nodeId}`);
-  const canvasArea = document.getElementById('sb-canvas-area');
-  if (!nodeEl || !canvasArea) return { x: 0, y: 0 };
+  const zoomContainer = document.getElementById('sb-zoom-container');
+  if (!nodeEl || !zoomContainer) return { x: 0, y: 0 };
 
-  const canvasRect = canvasArea.getBoundingClientRect();
+  const containerRect = zoomContainer.getBoundingClientRect();
   const portEl = nodeEl.querySelector(`.port-${portType}`);
   const zoom = editorState.zoom || 1.0;
 
   if (portEl) {
     const portRect = portEl.getBoundingClientRect();
     return {
-      x: (portRect.left + portRect.width / 2 - canvasRect.left) / zoom,
-      y: (portRect.top + portRect.height / 2 - canvasRect.top) / zoom
+      x: (portRect.left + portRect.width / 2 - containerRect.left) / zoom,
+      y: (portRect.top + portRect.height / 2 - containerRect.top) / zoom
     };
   }
 
