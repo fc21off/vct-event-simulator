@@ -108,6 +108,8 @@ export function createSandboxTournament(customEvent, teams) {
 
   return {
     type: 'sandbox',
+    stage: 'sandbox',
+    viewingStage: 'sandbox',
     customEvent,
     name: customEvent.name,
     hostCity,
@@ -122,17 +124,23 @@ export function createSandboxTournament(customEvent, teams) {
 /**
  * Simulates the next playable match in topological order.
  * @param {Object} tournament 
- * @returns {Object|null} Result of simulation
+ * @returns {Object} { tournament, step }
  */
 export function simulateNextStep(tournament) {
-  if (tournament.completed) return null;
+  if (tournament.completed) {
+    tournament.stage = 'complete';
+    return { tournament, step: null };
+  }
 
   const playableNode = tournament.nodes.find(n => {
     if (n.type !== 'gamebox' || n.played) return false;
     return n.team1 && n.team2;
   });
 
-  if (!playableNode) return null;
+  if (!playableNode) {
+    checkTournamentCompletion(tournament);
+    return { tournament, step: null };
+  }
 
   if (playableNode.isGrandFinal) {
     const gfMatch = createGrandFinalMatch(playableNode.team1, playableNode.team2);
@@ -148,7 +156,7 @@ export function simulateNextStep(tournament) {
     propagateResult(tournament, playableNode);
     checkTournamentCompletion(tournament);
 
-    return { node: playableNode, matchResult: gfMatch };
+    return { tournament, step: { node: playableNode, matchResult: gfMatch } };
   } else {
     const match = simulateMatch(playableNode.team1, playableNode.team2);
     playableNode.played = true;
@@ -160,20 +168,28 @@ export function simulateNextStep(tournament) {
     propagateResult(tournament, playableNode);
     checkTournamentCompletion(tournament);
 
-    return { node: playableNode, matchResult: match };
+    return { tournament, step: { node: playableNode, matchResult: match } };
   }
 }
 
 /**
  * Simulates all remaining unplayed matches in order.
  * @param {Object} tournament 
+ * @returns {Object} { tournament }
  */
 export function simulateAll(tournament) {
-  let step = null;
+  let res = null;
+  let safety = 0;
   do {
-    step = simulateNextStep(tournament);
-  } while (step !== null);
-  return tournament;
+    res = simulateNextStep(tournament);
+    safety++;
+  } while (res && res.step !== null && safety < 100);
+
+  if (tournament.champion) {
+    tournament.completed = true;
+    tournament.stage = 'complete';
+  }
+  return { tournament };
 }
 
 function propagateResult(tournament, node) {
@@ -188,6 +204,7 @@ function propagateResult(tournament, node) {
       } else if (targetNode.type === 'champion') {
         tournament.champion = node.winner;
         tournament.completed = true;
+        tournament.stage = 'complete';
       }
     }
   }
@@ -214,6 +231,7 @@ function checkTournamentCompletion(tournament) {
       if (parent && parent.played) {
         tournament.champion = parent.winner;
         tournament.completed = true;
+        tournament.stage = 'complete';
       }
     }
   }
