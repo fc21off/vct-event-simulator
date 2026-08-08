@@ -37,16 +37,17 @@ export function renderTournament() {
   }
 
   // Active viewing stage (defaults to current tournament stage if not set)
-  const viewingStage = t.viewingStage || t.stage;
+  const viewingStage = t.viewingStage || t.stage || 'sandbox';
   
   // Show readable stage label
   const stageLabels = {
     'swiss': 'SWISS STAGE',
     'groups': 'GROUP STAGE',
     'bracket': 'PLAYOFFS',
+    'sandbox': 'CUSTOM BRACKET',
     'complete': 'COMPLETE'
   };
-  document.getElementById('t-stage-indicator').textContent = stageLabels[viewingStage] || viewingStage.toUpperCase();
+  document.getElementById('t-stage-indicator').textContent = stageLabels[viewingStage] || (viewingStage ? viewingStage.toUpperCase() : 'CUSTOM BRACKET');
   
   const content = document.getElementById('tournament-content');
   content.innerHTML = '';

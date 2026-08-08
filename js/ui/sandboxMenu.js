@@ -159,9 +159,11 @@ function openCreateModal() {
 }
 
 function launchCustomEvent(customEvent) {
+  showScreen('team-select');
   setupTeamSelect(customEvent.teamCount, (teams) => {
     const tournament = createSandboxTournament(customEvent, teams);
     import('../app.js').then(m => {
+      appState.currentFormat = 'sandbox';
       appState.tournament = tournament;
       appState.tournamentModule = {
         simulateNextStep: (t) => import('../engine/sandboxEngine.js').then(mod => mod.simulateNextStep(t)),
