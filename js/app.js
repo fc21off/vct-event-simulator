@@ -256,6 +256,28 @@ function initTournamentControls() {
   });
 
   // Grand Finals Modal Controls
+  const gfModal = document.getElementById('modal-grand-finals');
+  const btnGfClose = document.getElementById('btn-gf-close');
+  if (btnGfClose && gfModal) {
+    btnGfClose.addEventListener('click', () => {
+      gfModal.classList.remove('active');
+    });
+  }
+
+  if (gfModal) {
+    gfModal.addEventListener('click', (e) => {
+      if (e.target === gfModal) {
+        gfModal.classList.remove('active');
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && gfModal && gfModal.classList.contains('active')) {
+      gfModal.classList.remove('active');
+    }
+  });
+
   document.getElementById('btn-gf-sim-map').addEventListener('click', () => {
     if (appState.grandFinalState && !appState.grandFinalState.isComplete) {
       appState.grandFinalState = simulateNextGrandFinalMap(appState.grandFinalState);
