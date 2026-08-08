@@ -1,4 +1,5 @@
 import { simulateMatch } from './match.js';
+import { createGrandFinalMatch, simulateEntireGrandFinal } from './grandFinals.js';
 
 /**
  * Initializes a Double-Elimination bracket with pre-populated R1 teams.
@@ -138,10 +139,20 @@ export function simulateBracketRound(bracket) {
     } else if (phase === 'grand_final') {
       const t1 = b.grandFinal ? b.grandFinal.team1 : getMatch(b, 'upper_r2', 0).winner;
       const t2 = b.grandFinal ? b.grandFinal.team2 : getMatch(b, 'lower_r2', 0).winner;
-      const m = simulateMatch(t1, t2, 5); // Bo5
-      b.grandFinal = m;
-      b.champion = m.winner;
-      newMatches = [m];
+      const gfState = createGrandFinalMatch(t1, t2);
+      const finalGfState = simulateEntireGrandFinal(gfState);
+      b.grandFinalState = finalGfState;
+      b.grandFinal = {
+        id: 'grand_final_match',
+        team1: t1,
+        team2: t2,
+        team1Score: finalGfState.team1MapsWon,
+        team2Score: finalGfState.team2MapsWon,
+        winner: finalGfState.winner,
+        played: true
+      };
+      b.champion = finalGfState.winner;
+      newMatches = [b.grandFinal];
     }
   } else if (b.size === 8) {
     if (phase === 'upper_r1') {
@@ -255,10 +266,20 @@ export function simulateBracketRound(bracket) {
     } else if (phase === 'grand_final') {
       const t1 = b.grandFinal ? b.grandFinal.team1 : getMatch(b, 'upper_r3', 0).winner;
       const t2 = b.grandFinal ? b.grandFinal.team2 : getMatch(b, 'lower_r4', 0).winner;
-      const m1 = simulateMatch(t1, t2, 5); // Bo5
-      b.grandFinal = m1;
-      b.champion = m1.winner;
-      newMatches = [m1];
+      const gfState = createGrandFinalMatch(t1, t2);
+      const finalGfState = simulateEntireGrandFinal(gfState);
+      b.grandFinalState = finalGfState;
+      b.grandFinal = {
+        id: 'grand_final_match',
+        team1: t1,
+        team2: t2,
+        team1Score: finalGfState.team1MapsWon,
+        team2Score: finalGfState.team2MapsWon,
+        winner: finalGfState.winner,
+        played: true
+      };
+      b.champion = finalGfState.winner;
+      newMatches = [b.grandFinal];
     }
   }
 

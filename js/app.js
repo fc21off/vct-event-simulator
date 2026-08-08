@@ -154,13 +154,18 @@ export function openGrandFinalModal() {
   if (!gfModal) return;
 
   const t = appState.tournament;
-  if (!appState.grandFinalState && t && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2) {
+  if (!t) return;
+
+  // Use saved grandFinalState from bracket if available!
+  if (t.bracket && t.bracket.grandFinalState) {
+    appState.grandFinalState = t.bracket.grandFinalState;
+  } else if (!appState.grandFinalState && t.bracket && t.bracket.grandFinal && t.bracket.grandFinal.team1 && t.bracket.grandFinal.team2) {
     appState.grandFinalState = createGrandFinalMatch(t.bracket.grandFinal.team1, t.bracket.grandFinal.team2);
   }
 
   if (appState.grandFinalState) {
     gfModal.classList.add('active');
-    renderGrandFinalModal(appState.grandFinalState, t ? t.name : '');
+    renderGrandFinalModal(appState.grandFinalState, t.name);
   }
 }
 
@@ -187,6 +192,7 @@ function handleGrandFinalCompletion() {
   if (!gf || !gf.isComplete || !appState.tournament) return;
 
   const t = appState.tournament;
+  t.bracket.grandFinalState = gf;
   t.bracket.grandFinal.played = true;
   t.bracket.grandFinal.team1Score = gf.team1MapsWon;
   t.bracket.grandFinal.team2Score = gf.team2MapsWon;
