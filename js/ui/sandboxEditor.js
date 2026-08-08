@@ -1,6 +1,6 @@
 import { validateSandboxGraph } from '../engine/sandboxEngine.js';
 import { saveCustomEvent } from '../data/sandbox.js';
-import { appState, showScreen } from '../app.js';
+import { showScreen } from '../navigation.js';
 
 let editorState = {
   teamCount: 8,
@@ -119,13 +119,11 @@ function createDefaultStarterNodes() {
 function bindEditorEvents(viewport) {
   // Toolbar Buttons
   viewport.querySelector('#btn-sb-back').addEventListener('click', () => {
-    import('../app.js').then(m => {
-      m.showScreen('sandbox-menu');
-      const container = document.getElementById('screen-sandbox-menu');
-      if (container) {
-        import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
-      }
-    });
+    showScreen('sandbox-menu');
+    const container = document.getElementById('screen-sandbox-menu');
+    if (container) {
+      import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
+    }
   });
 
   viewport.querySelector('#btn-sb-add-gamebox').addEventListener('click', () => {
@@ -238,13 +236,11 @@ function finishAndValidateBracket() {
       saveCustomEvent(customEvent);
       modal.classList.remove('active');
 
-      import('../app.js').then(m => {
-        m.showScreen('sandbox-menu');
-        const container = document.getElementById('screen-sandbox-menu');
-        if (container) {
-          import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
-        }
-      });
+      showScreen('sandbox-menu');
+      const container = document.getElementById('screen-sandbox-menu');
+      if (container) {
+        import('./sandboxMenu.js').then(mod => mod.renderSandboxMenu(container));
+      }
     };
   }
 

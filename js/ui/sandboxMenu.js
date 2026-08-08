@@ -2,6 +2,8 @@ import { getSavedCustomEvents, deleteCustomEvent } from '../data/sandbox.js';
 import { initSandboxEditor } from './sandboxEditor.js';
 import { setupTeamSelect } from './teamSelect.js';
 import { createSandboxTournament } from '../engine/sandboxEngine.js';
+import { showScreen } from '../navigation.js';
+import { appState } from '../app.js';
 
 /**
  * Renders the Sandbox Landing Menu ("Create New Event" vs "Choose Event").
@@ -109,7 +111,7 @@ export function renderSandboxMenu(container) {
   container.appendChild(wrap);
 
   container.querySelector('#btn-sb-menu-back').addEventListener('click', () => {
-    import('../app.js').then(m => m.showScreen('menu'));
+    showScreen('menu');
   });
 }
 
@@ -147,12 +149,8 @@ function openCreateModal() {
 
       const screen = document.getElementById('screen-sandbox-editor');
       if (screen) {
-        import('../app.js').then(m => {
-          m.showScreen('sandbox-editor');
-          setTimeout(() => {
-            initSandboxEditor(screen, count);
-          }, 50);
-        });
+        showScreen('sandbox-editor');
+        initSandboxEditor(screen, count);
       }
     };
   }

@@ -7,19 +7,8 @@ import { renderSandboxView } from './ui/sandboxView.js';
 import { createGrandFinalMatch, simulateNextGrandFinalMap, simulateEntireGrandFinal } from './engine/grandFinals.js';
 import { renderGrandFinalModal } from './ui/grandFinalModal.js';
 
-const screens = ['menu', 'presets', 'sandbox-menu', 'sandbox-editor', 'team-select', 'tournament'];
-
-export function showScreen(screenId) {
-  screens.forEach(s => {
-    const el = document.getElementById(`screen-${s}`);
-    if (el) {
-      el.classList.toggle('hidden', s !== screenId);
-      if (s === screenId) {
-        el.classList.add('animate-fade-in');
-      }
-    }
-  });
-}
+import { showScreen } from './navigation.js';
+export { showScreen };
 
 export const appState = {
   currentFormat: null,
