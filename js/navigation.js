@@ -10,7 +10,11 @@ export function showScreen(screenId) {
     if (el) {
       el.classList.toggle('hidden', s !== screenId);
       if (s === screenId) {
-        el.classList.add('animate-fade-in');
+        if (s !== 'sandbox-editor') {
+          el.classList.add('animate-fade-in');
+        } else {
+          el.classList.remove('animate-fade-in');
+        }
       }
     }
   });
