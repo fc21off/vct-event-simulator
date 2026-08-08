@@ -1,63 +1,62 @@
 /**
- * Team Elo Ratings Hashmap
- * Every team starts with a default rating of 100.
+ * Team Elo / Power-Scores (Updated: August 2026)
  */
 export const TEAM_RATINGS = {
   // AMERICAS
-  '100T': 100,
-  'C9': 100,
-  'EG': 100,
-  'FUR': 100,
-  'KRU': 100,
-  'LEV': 100,
-  'LOUD': 100,
-  'MIBR': 100,
-  'NRG': 100,
-  'SEN': 100,
-  'G2': 100,
-  'ENVY': 100,
+  '100T': 1369,
+  'C9': 1202,
+  'EG': 1188,
+  'FUR': 1158,
+  'KRU': 1134,
+  'LEV': 1557,
+  'LOUD': 1206,
+  'MIBR': 1361,
+  'NRG': 1457,
+  'SEN': 1246,
+  'G2': 1338,
+  'ENVY': 1202,
 
   // EMEA
-  'BBL': 100,
-  'FNC': 100,
-  'FUT': 100,
-  'M8': 100,
-  'GX': 100,
-  'KC': 100,
-  'NAVI': 100,
-  'TH': 100,
-  'TL': 100,
-  'VIT': 100,
-  'PCF': 100,
-  'EF': 100,
+  'BBL': 1287,
+  'FNC': 1258,
+  'FUT': 1288,
+  'M8': 1221,
+  'GX': 1184,
+  'KC': 1285,
+  'NAVI': 1210,
+  'TH': 1289,
+  'TL': 1332,
+  'VIT': 1416,
+  'PCF': 1083,
+  'EF': 1263,
 
   // PACIFIC
-  'DFM': 100,
-  'DRX': 100,
-  'FS': 100,
-  'GEN': 100,
-  'GE': 100,
-  'PRX': 100,
-  'RRQ': 100,
-  'T1': 100,
-  'TS': 100,
-  'ZETA': 100,
-  'VL': 100,
-  'NS': 100,
+  'DFM': 1267,
+  'DRX': 1287,
+  'FS': 1249,
+  'GEN': 1311,
+  'GE': 1353,
+  'PRX': 1563,
+  'RRQ': 1239,
+  'T1': 1355,
+  'TS': 1150,
+  'ZETA': 1236,
+  'VL': 1233,
+  'NS': 1384,
 
   // CHINA
-  'AG': 100,
-  'BLG': 100,
-  'EDG': 100,
-  'FPX': 100,
-  'JDG': 100,
-  'NOVA': 100,
-  'TEC': 100,
-  'TE': 100,
-  'TYL': 100,
-  'WOL': 100,
-  'XLG': 100,
-  'DRG': 100
+  'AG': 1205,
+  'BLG': 1231,
+  'EDG': 1281,
+  'FPX': 1119,
+  'JDG': 1089,
+  'NOVA': 1155,
+  'TEC': 1099,
+  'TE': 1034,
+  'TYL': 1234,
+  'WOL': 1109,
+  'XLG': 1277,
+  'DRG': 1179
 };
 
 /**
@@ -66,7 +65,7 @@ export const TEAM_RATINGS = {
  * @returns {number} Elo rating
  */
 export function getTeamRating(team) {
-  if (!team) return 100;
+  if (!team) return 1200;
   const key = typeof team === 'string' ? team : (team.id || team.tag);
-  return TEAM_RATINGS[key] !== undefined ? TEAM_RATINGS[key] : (team.rating || 100);
+  return TEAM_RATINGS[key] !== undefined ? TEAM_RATINGS[key] : (team.rating || 1200);
 }
