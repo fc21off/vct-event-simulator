@@ -30,7 +30,11 @@ export function initTeamSelect() {
 
   if (btnBack) {
     btnBack.addEventListener('click', () => {
-      showScreen('presets');
+      if (customCallback) {
+        showScreen('sandbox-menu');
+      } else {
+        showScreen('presets');
+      }
     });
   }
 
@@ -61,20 +65,20 @@ export function setupTeamSelect(format, callback = null) {
     requiredCount = formatCounts[format] || 16;
   }
   quotaPerRegion = Math.ceil(requiredCount / 4);
-  
-  // Auto pre-populate teams for instant playability
+
+  // Auto pre-populate top teams for instant playability
   appState.selectedTeams = getRandomTeams(requiredCount, true);
-  
+
   const titleEl = document.getElementById('ts-format-title');
   if (titleEl) {
     titleEl.textContent = typeof format === 'string' ? (formatTitles[format] || 'VCT CHAMPIONS') : 'CUSTOM TOURNAMENT';
   }
-  
+
   const maxEl = document.getElementById('ts-counter-max');
   if (maxEl) {
     maxEl.textContent = requiredCount;
   }
-  
+
   renderTeamGrid();
   updateCounter();
 }
@@ -100,6 +104,7 @@ function renderTeamGrid() {
     col.className = 'region-box-column';
     
     const count = getSelectedCountForRegion(region);
+    const selectedRegionTeams = getSelectedTeamsForRegion(region);
     
     // Region Header with Title and Fixed-Width Counter
     const header = document.createElement('div');
@@ -110,26 +115,30 @@ function renderTeamGrid() {
     `;
     col.appendChild(header);
 
+    // 12 Team Boxes Container
     const boxesContainer = document.createElement('div');
-    boxesContainer.style.cssText = 'display: flex; flex-direction: column; gap: 0.5rem;';
-    
-    // Render Team Cards for this region
-    TEAMS_BY_REGION[region].forEach(team => {
-      const isSelected = appState.selectedTeams.some(t => t.id === team.id);
-      const box = document.createElement('div');
-      box.className = `region-team-card ${isSelected ? 'selected' : ''}`;
-      
-      const logoHtml = team.logo ? `<img src="${team.logo}" class="region-team-logo" alt="${team.name}">` : '';
+    boxesContainer.className = 'region-boxes-grid';
 
+    const teams = (TEAMS_BY_REGION && TEAMS_BY_REGION[region]) ? TEAMS_BY_REGION[region] : [];
+    
+    teams.forEach(team => {
+      const box = document.createElement('div');
+      const selectedIndex = selectedRegionTeams.findIndex(t => t.id === team.id);
+      const isSelected = selectedIndex >= 0;
+      const seedNum = isSelected ? selectedIndex + 1 : null;
+      
+      box.className = `team-select-box ${isSelected ? 'selected' : ''}`;
+      
+      const logoHtml = team.logo ? `<img src="${team.logo}" alt="${team.name}" class="team-select-logo" />` : '';
+      const seedBadgeHtml = isSelected && seedNum ? `<span class="seed-badge" title="Seed #${seedNum}">#${seedNum}</span>` : '';
+      
       box.innerHTML = `
-        <div class="team-card-inner">
-          ${logoHtml}
-          <div class="team-card-info">
-            <span class="team-card-tag">${team.tag || team.name}</span>
-            <span class="team-card-elo">ELO ${team.elo}</span>
-          </div>
-        </div>
+        ${logoHtml}
+        <span class="team-tag-text">${team.tag || team.id}</span>
+        ${seedBadgeHtml}
       `;
+      
+      box.title = `${team.name} ${isSelected ? `(Seed #${seedNum})` : ''} (Elo: ${team.elo})`;
       
       box.addEventListener('click', () => {
         toggleTeam(team);
