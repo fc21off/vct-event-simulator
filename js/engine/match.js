@@ -1,16 +1,31 @@
+import { getTeamRating } from '../data/ratings.js';
+
 /**
- * Simulates a single map.
+ * Calculates win probability for Team 1 vs Team 2 based on Elo rating delta.
+ * Uses standard Elo win probability formula: P(T1) = 1 / (1 + 10^((Elo2 - Elo1) / 400))
+ * @param {Object} team1 
+ * @param {Object} team2 
+ * @returns {number} Probability between 0.0 and 1.0
+ */
+export function calculateWinProbability(team1, team2) {
+  const r1 = getTeamRating(team1);
+  const r2 = getTeamRating(team2);
+  return 1 / (1 + Math.pow(10, (r2 - r1) / 400));
+}
+
+/**
+ * Simulates a single map using team Elo ratings.
  * @param {Object} team1 
  * @param {Object} team2 
  * @returns {Object} The winning team
  */
 function simulateMap(team1, team2) {
-  // 50/50 chance, simple random
-  return Math.random() < 0.5 ? team1 : team2;
+  const prob1 = calculateWinProbability(team1, team2);
+  return Math.random() < prob1 ? team1 : team2;
 }
 
 /**
- * Simulates a Bo3 or Bo5 series.
+ * Simulates a Bo3 or Bo5 series based on team Elo ratings.
  * @param {Object} team1 
  * @param {Object} team2 
  * @param {number} bestOf 
