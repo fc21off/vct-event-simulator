@@ -348,6 +348,9 @@ function initTournamentControls() {
       appState.tournament = result.tournament;
       appState.tournament.viewingStage = 'complete';
       renderTournament();
+      if (appState.tournament.champion) {
+        showChampionCelebration(appState.tournament.champion, appState.tournament.name);
+      }
     }
   });
 }
