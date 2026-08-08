@@ -6,9 +6,10 @@ import { getRandomHostCity } from '../data/cities.js';
  * Validates the custom node graph topology.
  * @param {Array} nodes 
  * @param {Array} connections 
+ * @param {number} [expectedTeamCount]
  * @returns {Object} { isValid: boolean, error?: string }
  */
-export function validateSandboxGraph(nodes, connections) {
+export function validateSandboxGraph(nodes, connections, expectedTeamCount) {
   const gameboxes = nodes.filter(n => n.type === 'gamebox');
   if (gameboxes.length === 0) {
     return { isValid: false, error: 'Add at least 1 Gamebox to your bracket!' };
@@ -19,9 +20,28 @@ export function validateSandboxGraph(nodes, connections) {
     return { isValid: false, error: 'Your bracket must contain exactly 1 Champion Box!' };
   }
 
+  const teamboxes = nodes.filter(n => n.type === 'teambox');
+  if (teamboxes.length === 0) {
+    return { isValid: false, error: 'Add Team Box nodes (SEED 1, SEED 2, ...) to seed your bracket!' };
+  }
+
+  if (expectedTeamCount && teamboxes.length !== expectedTeamCount) {
+    return { 
+      isValid: false, 
+      error: `Your bracket has ${teamboxes.length} Team Box(es), but the bracket is set up for ${expectedTeamCount} Teams!\n\nPlease match the number of Team Boxes to ${expectedTeamCount}.` 
+    };
+  }
+
+  // Verify each Team Box is connected to a Gamebox input
+  for (const tb of teamboxes) {
+    const conn = connections.find(c => c.fromNodeId === tb.id);
+    if (!conn) {
+      return { isValid: false, error: `Team Box "${tb.label || ('SEED #' + tb.seedIndex)}" is not connected to any Gamebox input!` };
+    }
+  }
+
   // Check every Gamebox
   for (const gb of gameboxes) {
-    // Must have 2 incoming connections or blocked inputs
     const in1 = connections.find(c => c.toNodeId === gb.id && c.toPort === 'in1');
     const in2 = connections.find(c => c.toNodeId === gb.id && c.toPort === 'in2');
 
@@ -29,16 +49,14 @@ export function validateSandboxGraph(nodes, connections) {
     const hasIn2 = in2 || gb.blockedIn2;
 
     if (!hasIn1 || !hasIn2) {
-      return { isValid: false, error: `Gamebox "${gb.label || gb.id}" needs 2 input connections (or pre-set seeds/byes)!` };
+      return { isValid: false, error: `Gamebox "${gb.label || gb.id}" needs 2 input connections (from Team Boxes or other Gameboxes)!` };
     }
 
-    // Must have Winner output connected
     const winConn = connections.find(c => c.fromNodeId === gb.id && c.fromPort === 'winner');
     if (!winConn) {
       return { isValid: false, error: `Gamebox "${gb.label || gb.id}" is missing a Green Winner Path!` };
     }
 
-    // Must have Loser output connected
     const loseConn = connections.find(c => c.fromNodeId === gb.id && c.fromPort === 'loser');
     if (!loseConn) {
       return { isValid: false, error: `Gamebox "${gb.label || gb.id}" is missing a Red Loser Path (or Elimination X)!` };
@@ -69,153 +87,134 @@ export function createSandboxTournament(customEvent, teams) {
     team2Score: null
   }));
 
-  // Distribute input teams into unblocked inputs of initial nodes
-  const availableTeams = [...teams];
-  const initialInputs = [];
+  // Map Team Boxes (SEED 1, SEED 2...) to input teams
+  const teamboxes = nodes
+    .filter(n => n.type === 'teambox')
+    .sort((a, b) => (a.seedIndex || 0) - (b.seedIndex || 0));
 
-  nodes.forEach(n => {
-    if (n.type === 'gamebox') {
-      if (!n.team1 && !customEvent.connections.some(c => c.toNodeId === n.id && c.toPort === 'in1')) {
-        initialInputs.push({ nodeId: n.id, port: 'in1' });
-      }
-      if (!n.team2 && !customEvent.connections.some(c => c.toNodeId === n.id && c.toPort === 'in2')) {
-        initialInputs.push({ nodeId: n.id, port: 'in2' });
-      }
-    }
-  });
-
-  // Assign selected teams to initial open inputs
-  initialInputs.forEach(target => {
-    if (availableTeams.length > 0) {
-      const assigned = availableTeams.shift();
-      const node = nodes.find(n => n.id === target.nodeId);
-      if (node) {
-        if (target.port === 'in1') node.team1 = assigned;
-        else if (target.port === 'in2') node.team2 = assigned;
+  teamboxes.forEach((tb, idx) => {
+    const teamObj = teams[idx];
+    if (teamObj) {
+      const conn = (customEvent.connections || []).find(c => c.fromNodeId === tb.id);
+      if (conn) {
+        const targetNode = nodes.find(n => n.id === conn.toNodeId);
+        if (targetNode) {
+          if (conn.toPort === 'in1') targetNode.team1 = teamObj;
+          else if (conn.toPort === 'in2') targetNode.team2 = teamObj;
+        }
       }
     }
   });
 
   return {
     type: 'sandbox',
-    eventId: customEvent.id,
-    name: customEvent.name.toUpperCase(),
+    customEvent,
+    name: customEvent.name,
     hostCity,
-    theme: customEvent.theme || 'champions',
-    teams,
-    stage: 'bracket',
     nodes,
     connections: customEvent.connections,
+    completed: false,
     champion: null,
-    bracket: {
-      theme: customEvent.theme || 'champions',
-      champion: null,
-      grandFinal: null
-    }
+    history: []
   };
 }
 
 /**
- * Propagates match outcomes through connections.
- * @param {Object} t Tournament state
- */
-function propagateResults(t) {
-  t.nodes.forEach(n => {
-    if (n.type === 'gamebox' && n.played) {
-      // Winner connection
-      const winConn = t.connections.find(c => c.fromNodeId === n.id && c.fromPort === 'winner');
-      if (winConn) {
-        const targetNode = t.nodes.find(target => target.id === winConn.toNodeId);
-        if (targetNode) {
-          if (targetNode.type === 'champion') {
-            t.champion = n.winner;
-            t.stage = 'complete';
-            t.bracket.champion = n.winner;
-          } else if (targetNode.type === 'gamebox') {
-            if (winConn.toPort === 'in1') targetNode.team1 = n.winner;
-            else if (winConn.toPort === 'in2') targetNode.team2 = n.winner;
-          }
-        }
-      }
-
-      // Loser connection
-      const loseConn = t.connections.find(c => c.fromNodeId === n.id && c.fromPort === 'loser');
-      if (loseConn) {
-        const targetNode = t.nodes.find(target => target.id === loseConn.toNodeId);
-        if (targetNode && targetNode.type === 'gamebox') {
-          if (loseConn.toPort === 'in1') targetNode.team1 = n.loser;
-          else if (loseConn.toPort === 'in2') targetNode.team2 = n.loser;
-        }
-      }
-    }
-  });
-}
-
-/**
- * Simulates next playable step in sandbox tournament.
+ * Simulates the next playable match in topological order.
  * @param {Object} tournament 
- * @returns {Object} { tournament, event }
+ * @returns {Object|null} Result of simulation
  */
 export function simulateNextStep(tournament) {
-  const t = { ...tournament, nodes: tournament.nodes.map(n => ({ ...n })) };
+  if (tournament.completed) return null;
 
-  if (t.stage === 'complete') {
-    return { tournament: t, event: { type: 'noop' } };
+  const playableNode = tournament.nodes.find(n => {
+    if (n.type !== 'gamebox' || n.played) return false;
+    return n.team1 && n.team2;
+  });
+
+  if (!playableNode) return null;
+
+  if (playableNode.isGrandFinal) {
+    const gfMatch = createGrandFinalMatch(playableNode.team1, playableNode.team2);
+    simulateEntireGrandFinal(gfMatch);
+
+    playableNode.played = true;
+    playableNode.winner = gfMatch.winner;
+    playableNode.loser = gfMatch.loser;
+    playableNode.team1Score = gfMatch.team1MapsWon;
+    playableNode.team2Score = gfMatch.team2MapsWon;
+    playableNode.grandFinalState = gfMatch;
+
+    propagateResult(tournament, playableNode);
+    checkTournamentCompletion(tournament);
+
+    return { node: playableNode, matchResult: gfMatch };
+  } else {
+    const match = simulateMatch(playableNode.team1, playableNode.team2);
+    playableNode.played = true;
+    playableNode.winner = match.winner;
+    playableNode.loser = match.loser;
+    playableNode.team1Score = match.score1;
+    playableNode.team2Score = match.score2;
+
+    propagateResult(tournament, playableNode);
+    checkTournamentCompletion(tournament);
+
+    return { node: playableNode, matchResult: match };
   }
-
-  // Find next unplayed Gamebox that has both team1 and team2 ready
-  const readyNode = t.nodes.find(n => n.type === 'gamebox' && !n.played && n.team1 && n.team2);
-
-  if (readyNode) {
-    if (readyNode.isGrandFinal) {
-      const gfState = createGrandFinalMatch(readyNode.team1, readyNode.team2);
-      const finalGf = simulateEntireGrandFinal(gfState);
-
-      readyNode.played = true;
-      readyNode.winner = finalGf.winner;
-      readyNode.loser = finalGf.winner.id === readyNode.team1.id ? readyNode.team2 : readyNode.team1;
-      readyNode.team1Score = finalGf.team1MapsWon;
-      readyNode.team2Score = finalGf.team2MapsWon;
-
-      t.grandFinalState = finalGf;
-      t.bracket.grandFinalState = finalGf;
-      t.bracket.grandFinal = {
-        id: readyNode.id,
-        team1: readyNode.team1,
-        team2: readyNode.team2,
-        team1Score: finalGf.team1MapsWon,
-        team2Score: finalGf.team2MapsWon,
-        winner: finalGf.winner,
-        played: true
-      };
-    } else {
-      const matchRes = simulateMatch(readyNode.team1, readyNode.team2, readyNode.bestOf || 3);
-      readyNode.played = true;
-      readyNode.winner = matchRes.winner;
-      readyNode.loser = matchRes.loser;
-      readyNode.team1Score = matchRes.team1Score;
-      readyNode.team2Score = matchRes.team2Score;
-    }
-
-    propagateResults(t);
-    return { tournament: t, event: { type: 'sandbox_match', data: readyNode } };
-  }
-
-  return { tournament: t, event: { type: 'noop' } };
 }
 
 /**
- * Simulates all remaining steps in sandbox tournament.
+ * Simulates all remaining unplayed matches in order.
  * @param {Object} tournament 
- * @returns {Object} Final tournament
  */
 export function simulateAll(tournament) {
-  let currentT = tournament;
-  let safety = 0;
-  while (currentT.stage !== 'complete' && safety < 100) {
-    const res = simulateNextStep(currentT);
-    currentT = res.tournament;
-    safety++;
+  let step = null;
+  do {
+    step = simulateNextStep(tournament);
+  } while (step !== null);
+  return tournament;
+}
+
+function propagateResult(tournament, node) {
+  // Winner path propagation
+  const winConn = tournament.connections.find(c => c.fromNodeId === node.id && c.fromPort === 'winner');
+  if (winConn) {
+    const targetNode = tournament.nodes.find(n => n.id === winConn.toNodeId);
+    if (targetNode) {
+      if (targetNode.type === 'gamebox') {
+        if (winConn.toPort === 'in1') targetNode.team1 = node.winner;
+        else if (winConn.toPort === 'in2') targetNode.team2 = node.winner;
+      } else if (targetNode.type === 'champion') {
+        tournament.champion = node.winner;
+        tournament.completed = true;
+      }
+    }
   }
-  return { tournament: currentT };
+
+  // Loser path propagation
+  const loseConn = tournament.connections.find(c => c.fromNodeId === node.id && c.fromPort === 'loser');
+  if (loseConn) {
+    const targetNode = tournament.nodes.find(n => n.id === loseConn.toNodeId);
+    if (targetNode) {
+      if (targetNode.type === 'gamebox') {
+        if (loseConn.toPort === 'in1') targetNode.team1 = node.loser;
+        else if (loseConn.toPort === 'in2') targetNode.team2 = node.loser;
+      }
+    }
+  }
+}
+
+function checkTournamentCompletion(tournament) {
+  const champNode = tournament.nodes.find(n => n.type === 'champion');
+  if (champNode) {
+    const conn = tournament.connections.find(c => c.toNodeId === champNode.id);
+    if (conn) {
+      const parent = tournament.nodes.find(n => n.id === conn.fromNodeId);
+      if (parent && parent.played) {
+        tournament.champion = parent.winner;
+        tournament.completed = true;
+      }
+    }
+  }
 }

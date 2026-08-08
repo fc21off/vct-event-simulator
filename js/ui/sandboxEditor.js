@@ -69,6 +69,7 @@ export function initSandboxEditor(container, teamCount = 8) {
   const toolbar = document.createElement('div');
   toolbar.className = 'sandbox-toolbar';
   toolbar.innerHTML = `
+    <button id="btn-sb-add-teambox" class="sb-tool-btn" style="border-color: #00aeef; color: #00aeef;">+ SEED / TEAM</button>
     <button id="btn-sb-add-gamebox" class="sb-tool-btn">+ GAMEBOX</button>
     <button id="btn-sb-add-elim" class="sb-tool-btn">+ ELIMINATION (X)</button>
     <button id="btn-sb-add-champ" class="sb-tool-btn">+ CHAMPION BOX</button>
@@ -82,38 +83,59 @@ export function initSandboxEditor(container, teamCount = 8) {
   // Bind Events
   bindEditorEvents(viewport);
 
-  // Pre-seed default Starter Nodes (1 Gamebox, 1 Champ, 1 Elim)
+  // Pre-seed default Starter Nodes (Team Slots, Gameboxes, Champ, Elim)
   createDefaultStarterNodes();
   renderEditor();
 }
 
 function createDefaultStarterNodes() {
-  const gb1 = {
-    id: 'gb_1',
-    type: 'gamebox',
-    label: 'GAME 1',
-    x: 100,
-    y: 120,
-    isGrandFinal: false
-  };
+  const count = editorState.teamCount || 8;
+  const nodes = [];
 
-  const champ = {
+  // Team Box Nodes (Column 1)
+  for (let i = 0; i < count; i++) {
+    nodes.push({
+      id: `tb_${i + 1}`,
+      type: 'teambox',
+      seedIndex: i + 1,
+      label: `SEED #${i + 1}`,
+      x: 50,
+      y: 40 + i * 75
+    });
+  }
+
+  // Initial Gameboxes (Column 2)
+  const gameCount = Math.max(1, Math.floor(count / 2));
+  for (let g = 0; g < gameCount; g++) {
+    nodes.push({
+      id: `gb_${g + 1}`,
+      type: 'gamebox',
+      label: `GAME ${g + 1}`,
+      x: 280,
+      y: 80 + g * 160,
+      isGrandFinal: false
+    });
+  }
+
+  // Champion Box (Column 4)
+  nodes.push({
     id: 'node_champ',
     type: 'champion',
     label: 'CHAMPION',
-    x: 650,
+    x: 750,
     y: 180
-  };
+  });
 
-  const elim = {
+  // Elimination Box (Column 3)
+  nodes.push({
     id: 'node_elim_1',
     type: 'elimination',
     label: 'ELIMINATED (X)',
-    x: 450,
-    y: 320
-  };
+    x: 520,
+    y: 360
+  });
 
-  editorState.nodes.push(gb1, champ, elim);
+  editorState.nodes = nodes;
 }
 
 function bindEditorEvents(viewport) {
@@ -126,13 +148,28 @@ function bindEditorEvents(viewport) {
     }
   });
 
+  viewport.querySelector('#btn-sb-add-teambox').addEventListener('click', () => {
+    const teamboxes = editorState.nodes.filter(n => n.type === 'teambox');
+    const seedIdx = teamboxes.length + 1;
+    const tb = {
+      id: `tb_${Date.now()}`,
+      type: 'teambox',
+      seedIndex: seedIdx,
+      label: `SEED #${seedIdx}`,
+      x: 50,
+      y: 40 + teamboxes.length * 75
+    };
+    editorState.nodes.push(tb);
+    renderEditor();
+  });
+
   viewport.querySelector('#btn-sb-add-gamebox').addEventListener('click', () => {
     const count = editorState.nodes.filter(n => n.type === 'gamebox').length + 1;
     const gb = {
       id: `gb_${Date.now()}`,
       type: 'gamebox',
       label: `GAME ${count}`,
-      x: 120 + (count * 20),
+      x: 280 + (count * 20),
       y: 100 + (count * 20),
       isGrandFinal: false
     };
@@ -146,7 +183,7 @@ function bindEditorEvents(viewport) {
       id: `elim_${Date.now()}`,
       type: 'elimination',
       label: 'ELIMINATED (X)',
-      x: 400 + (count * 20),
+      x: 520 + (count * 20),
       y: 300 + (count * 20)
     };
     editorState.nodes.push(elim);
@@ -162,7 +199,7 @@ function bindEditorEvents(viewport) {
       id: 'node_champ',
       type: 'champion',
       label: 'CHAMPION',
-      x: 650,
+      x: 750,
       y: 180
     };
     editorState.nodes.push(champ);
@@ -202,7 +239,7 @@ function bindEditorEvents(viewport) {
 }
 
 function finishAndValidateBracket() {
-  const validation = validateSandboxGraph(editorState.nodes, editorState.connections);
+  const validation = validateSandboxGraph(editorState.nodes, editorState.connections, editorState.teamCount);
   if (!validation.isValid) {
     alert(`Validation Failed:\n\n${validation.error}`);
     return;
@@ -349,6 +386,22 @@ function renderNodes() {
       });
       nodeEl.appendChild(gfBtn);
 
+    } else if (n.type === 'teambox') {
+      const info = document.createElement('div');
+      info.style.cssText = 'font-size: 0.75rem; color: #00aeef; font-weight: 700; text-transform: uppercase; margin-top: 0.3rem;';
+      info.textContent = `SLOT #${n.seedIndex || 1}`;
+      nodeEl.appendChild(info);
+
+      const outPort = document.createElement('div');
+      outPort.className = 'sb-port port-out';
+      outPort.style.right = '-9px';
+      outPort.style.top = '40%';
+      outPort.style.background = '#00aeef';
+      outPort.style.borderColor = '#00aeef';
+      outPort.title = 'Connect to Gamebox Input';
+      outPort.addEventListener('click', (e) => onPortClick(e, n.id, 'out', 'output'));
+      nodeEl.appendChild(outPort);
+
     } else if (n.type === 'champion' || n.type === 'elimination') {
       const inPort = document.createElement('div');
       inPort.className = 'sb-port port-input port-in1';
@@ -415,7 +468,7 @@ function renderWires() {
     const end = getPortCoordinates(c.toNodeId, c.toPort);
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    const cableClass = c.fromPort === 'winner' ? 'cable-winner' : 'cable-loser';
+    const cableClass = c.fromPort === 'winner' ? 'cable-winner' : (c.fromPort === 'out' ? 'cable-team' : 'cable-loser');
     path.setAttribute('class', `sandbox-cable ${cableClass}`);
 
     // Cubic Bezier curve
