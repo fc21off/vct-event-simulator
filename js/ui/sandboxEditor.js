@@ -8,7 +8,8 @@ let editorState = {
   connections: [],
   drawingCable: null,
   draggedNode: null,
-  dragOffset: { x: 0, y: 0 }
+  dragOffset: { x: 0, y: 0 },
+  zoom: 1.0
 };
 
 /**
@@ -23,7 +24,8 @@ export function initSandboxEditor(container, teamCount = 8) {
     connections: [],
     drawingCable: null,
     draggedNode: null,
-    dragOffset: { x: 0, y: 0 }
+    dragOffset: { x: 0, y: 0 },
+    zoom: 1.0
   };
 
   container.innerHTML = '';
@@ -31,7 +33,7 @@ export function initSandboxEditor(container, teamCount = 8) {
   const viewport = document.createElement('div');
   viewport.className = 'sandbox-viewport';
 
-  // Top Bar
+  // Top Bar with Header & Zoom Controls
   const header = document.createElement('div');
   header.className = 'sandbox-header-bar';
   header.innerHTML = `
@@ -42,7 +44,12 @@ export function initSandboxEditor(container, teamCount = 8) {
       <span>CANCEL</span>
     </button>
     <div class="sandbox-title">SANDBOX BRACKET EDITOR (${teamCount} TEAMS)</div>
-    <div></div>
+    <div style="display: flex; align-items: center; gap: 0.5rem;">
+      <button id="btn-sb-zoom-out" class="sb-tool-btn" style="padding: 0.3rem 0.7rem; font-size: 0.9rem;" title="Zoom Out (-)">−</button>
+      <span id="sb-zoom-level" style="font-family: var(--font-heading); font-size: 0.85rem; font-weight: 800; color: #bdb578; width: 48px; text-align: center;">100%</span>
+      <button id="btn-sb-zoom-in" class="sb-tool-btn" style="padding: 0.3rem 0.7rem; font-size: 0.9rem;" title="Zoom In (+)">+</button>
+      <button id="btn-sb-zoom-reset" class="sb-tool-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" title="Reset Zoom">RESET</button>
+    </div>
   `;
   viewport.appendChild(header);
 
@@ -83,7 +90,7 @@ export function initSandboxEditor(container, teamCount = 8) {
   // Bind Events
   bindEditorEvents(viewport);
 
-  // Pre-seed default Starter Nodes (Team Slots, Gameboxes, Champ, Elim)
+  // Pre-seed default Starter Nodes
   createDefaultStarterNodes();
   renderEditor();
 }
@@ -138,8 +145,27 @@ function createDefaultStarterNodes() {
   editorState.nodes = nodes;
 }
 
+function applyZoomTransform() {
+  const nodesLayer = document.getElementById('sb-nodes-layer');
+  const svgLayer = document.getElementById('sb-svg-layer');
+  const zoomLabel = document.getElementById('sb-zoom-level');
+
+  const transformStr = `scale(${editorState.zoom})`;
+  if (nodesLayer) {
+    nodesLayer.style.transform = transformStr;
+    nodesLayer.style.transformOrigin = '0 0';
+  }
+  if (svgLayer) {
+    svgLayer.style.transform = transformStr;
+    svgLayer.style.transformOrigin = '0 0';
+  }
+  if (zoomLabel) {
+    zoomLabel.textContent = `${Math.round(editorState.zoom * 100)}%`;
+  }
+}
+
 function bindEditorEvents(viewport) {
-  // Toolbar Buttons
+  // Navigation Back
   viewport.querySelector('#btn-sb-back').addEventListener('click', () => {
     showScreen('sandbox-menu');
     const container = document.getElementById('screen-sandbox-menu');
@@ -148,6 +174,26 @@ function bindEditorEvents(viewport) {
     }
   });
 
+  // Zoom Controls
+  viewport.querySelector('#btn-sb-zoom-in').addEventListener('click', () => {
+    editorState.zoom = Math.min(2.0, +(editorState.zoom + 0.15).toFixed(2));
+    applyZoomTransform();
+    renderWires();
+  });
+
+  viewport.querySelector('#btn-sb-zoom-out').addEventListener('click', () => {
+    editorState.zoom = Math.max(0.4, +(editorState.zoom - 0.15).toFixed(2));
+    applyZoomTransform();
+    renderWires();
+  });
+
+  viewport.querySelector('#btn-sb-zoom-reset').addEventListener('click', () => {
+    editorState.zoom = 1.0;
+    applyZoomTransform();
+    renderWires();
+  });
+
+  // Toolbar Add Buttons
   viewport.querySelector('#btn-sb-add-teambox').addEventListener('click', () => {
     const teamboxes = editorState.nodes.filter(n => n.type === 'teambox');
     const seedIdx = teamboxes.length + 1;
@@ -216,25 +262,51 @@ function bindEditorEvents(viewport) {
     finishAndValidateBracket();
   });
 
-  // Mousemove for dragging nodes or cable drawing
   const canvasArea = viewport.querySelector('#sb-canvas-area');
 
+  // Mouse Wheel Zoom
+  canvasArea.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    editorState.zoom = Math.min(Math.max(0.4, +(editorState.zoom + delta).toFixed(2)), 2.0);
+    applyZoomTransform();
+    renderWires();
+  }, { passive: false });
+
+  // Mousemove for dragging nodes or cable drawing
   canvasArea.addEventListener('mousemove', (e) => {
+    const rect = canvasArea.getBoundingClientRect();
+    const zoom = editorState.zoom || 1.0;
+
     if (editorState.draggedNode) {
-      const rect = canvasArea.getBoundingClientRect();
-      editorState.draggedNode.x = e.clientX - rect.left - editorState.dragOffset.x;
-      editorState.draggedNode.y = e.clientY - rect.top - editorState.dragOffset.y;
+      editorState.draggedNode.x = (e.clientX - rect.left - editorState.dragOffset.x) / zoom;
+      editorState.draggedNode.y = (e.clientY - rect.top - editorState.dragOffset.y) / zoom;
       renderEditor();
     } else if (editorState.drawingCable) {
-      const rect = canvasArea.getBoundingClientRect();
-      editorState.drawingCable.tempX = e.clientX - rect.left;
-      editorState.drawingCable.tempY = e.clientY - rect.top;
+      editorState.drawingCable.tempX = (e.clientX - rect.left) / zoom;
+      editorState.drawingCable.tempY = (e.clientY - rect.top) / zoom;
       renderWires();
     }
   });
 
   canvasArea.addEventListener('mouseup', () => {
     editorState.draggedNode = null;
+  });
+
+  // Clicking empty canvas area cancels active cable drawing
+  canvasArea.addEventListener('click', (e) => {
+    if (editorState.drawingCable && !e.target.classList.contains('sb-port')) {
+      editorState.drawingCable = null;
+      renderWires();
+    }
+  });
+
+  // ESC key cancels active cable drawing
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && editorState.drawingCable) {
+      editorState.drawingCable = null;
+      renderWires();
+    }
   });
 }
 
@@ -291,11 +363,13 @@ function getPortCoordinates(nodeId, portType) {
 
   const canvasRect = canvasArea.getBoundingClientRect();
   const portEl = nodeEl.querySelector(`.port-${portType}`);
+  const zoom = editorState.zoom || 1.0;
+
   if (portEl) {
     const portRect = portEl.getBoundingClientRect();
     return {
-      x: portRect.left + portRect.width / 2 - canvasRect.left,
-      y: portRect.top + portRect.height / 2 - canvasRect.top
+      x: (portRect.left + portRect.width / 2 - canvasRect.left) / zoom,
+      y: (portRect.top + portRect.height / 2 - canvasRect.top) / zoom
     };
   }
 
@@ -303,7 +377,50 @@ function getPortCoordinates(nodeId, portType) {
   return { x: (node ? node.x : 0) + 50, y: (node ? node.y : 0) + 30 };
 }
 
+function getIncomingFeedLabel(nodeId, portType) {
+  const conn = editorState.connections.find(c => c.toNodeId === nodeId && c.toPort === portType);
+  if (!conn) return 'TBD (EMPTY)';
+
+  const sourceNode = editorState.nodes.find(n => n.id === conn.fromNodeId);
+  if (!sourceNode) return 'TBD';
+
+  if (sourceNode.type === 'teambox') {
+    return sourceNode.label || `SEED #${sourceNode.seedIndex}`;
+  } else if (sourceNode.type === 'gamebox') {
+    const isWinner = conn.fromPort === 'winner';
+    const isGF = sourceNode.isGrandFinal;
+    const prefix = isGF ? 'GRAND FINAL' : (sourceNode.label || 'GAME');
+    return `${isWinner ? 'WINNER' : 'LOSER'} OF ${prefix}`;
+  }
+  return 'TBD';
+}
+
 function renderEditor() {
+  applyZoomTransform();
+
+  // Auto-detect Grand Final: The Gamebox whose winner output connects directly to the Champion Box
+  const champNode = editorState.nodes.find(n => n.type === 'champion');
+  let gfNodeId = null;
+  if (champNode) {
+    const connToChamp = editorState.connections.find(c => c.toNodeId === champNode.id);
+    if (connToChamp) {
+      gfNodeId = connToChamp.fromNodeId;
+    }
+  }
+
+  // Update Gamebox titles & grand final status
+  let gameCounter = 1;
+  editorState.nodes.forEach(n => {
+    if (n.type === 'gamebox') {
+      n.isGrandFinal = (n.id === gfNodeId);
+      if (n.isGrandFinal) {
+        n.label = 'GRAND FINAL';
+      } else {
+        n.label = `GAME ${gameCounter++}`;
+      }
+    }
+  });
+
   renderNodes();
   renderWires();
 }
@@ -325,7 +442,7 @@ function renderNodes() {
     const header = document.createElement('div');
     header.className = 'sb-node-header';
     header.innerHTML = `
-      <span class="sb-node-title">${n.label}</span>
+      <span class="sb-node-title">${isGF ? '🏆 GRAND FINAL (BO5)' : n.label}</span>
       <button class="sb-node-delete" title="Delete Node">✕</button>
     `;
 
@@ -336,10 +453,11 @@ function renderNodes() {
 
     header.addEventListener('mousedown', (e) => {
       const rect = nodeEl.getBoundingClientRect();
+      const zoom = editorState.zoom || 1.0;
       editorState.draggedNode = n;
       editorState.dragOffset = {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
+        x: (e.clientX - rect.left) / zoom,
+        y: (e.clientY - rect.top) / zoom
       };
     });
 
@@ -373,18 +491,18 @@ function renderNodes() {
       losePort.addEventListener('click', (e) => onPortClick(e, n.id, 'loser', 'output'));
       nodeEl.appendChild(losePort);
 
-      // Grand Final Toggle Button inside body
-      const gfBtn = document.createElement('button');
-      gfBtn.className = 'sb-tool-btn';
-      gfBtn.style.cssText = 'width: 100%; font-size: 0.75rem; padding: 0.3rem; margin-top: 0.4rem;';
-      gfBtn.textContent = n.isGrandFinal ? 'GRAND FINAL (BO5)' : 'Make Grand Final';
-      gfBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        n.isGrandFinal = !n.isGrandFinal;
-        n.label = n.isGrandFinal ? 'GRAND FINAL' : 'GAME';
-        renderEditor();
-      });
-      nodeEl.appendChild(gfBtn);
+      // Display incoming feeds VS card inside Gamebox
+      const feed1 = getIncomingFeedLabel(n.id, 'in1');
+      const feed2 = getIncomingFeedLabel(n.id, 'in2');
+
+      const feedCard = document.createElement('div');
+      feedCard.className = 'sb-node-feed-card';
+      feedCard.innerHTML = `
+        <div class="feed-team">${feed1}</div>
+        <div class="feed-vs">VS</div>
+        <div class="feed-team">${feed2}</div>
+      `;
+      nodeEl.appendChild(feedCard);
 
     } else if (n.type === 'teambox') {
       const info = document.createElement('div');
@@ -402,13 +520,39 @@ function renderNodes() {
       outPort.addEventListener('click', (e) => onPortClick(e, n.id, 'out', 'output'));
       nodeEl.appendChild(outPort);
 
-    } else if (n.type === 'champion' || n.type === 'elimination') {
+    } else if (n.type === 'champion') {
       const inPort = document.createElement('div');
       inPort.className = 'sb-port port-input port-in1';
       inPort.style.top = '40%';
       inPort.title = 'Input Path';
       inPort.addEventListener('click', (e) => onPortClick(e, n.id, 'in1', 'input'));
       nodeEl.appendChild(inPort);
+
+      const champFeed = getIncomingFeedLabel(n.id, 'in1');
+      const feedCard = document.createElement('div');
+      feedCard.className = 'sb-node-feed-card';
+      feedCard.innerHTML = `
+        <div class="feed-champ-title">CROWNS CHAMPION:</div>
+        <div class="feed-champ-source">${champFeed}</div>
+      `;
+      nodeEl.appendChild(feedCard);
+
+    } else if (n.type === 'elimination') {
+      const inPort = document.createElement('div');
+      inPort.className = 'sb-port port-input port-in1';
+      inPort.style.top = '40%';
+      inPort.title = 'Input Path';
+      inPort.addEventListener('click', (e) => onPortClick(e, n.id, 'in1', 'input'));
+      nodeEl.appendChild(inPort);
+
+      const elimFeed = getIncomingFeedLabel(n.id, 'in1');
+      const feedCard = document.createElement('div');
+      feedCard.className = 'sb-node-feed-card';
+      feedCard.innerHTML = `
+        <div class="feed-elim-title">ELIMINATES:</div>
+        <div class="feed-elim-source">${elimFeed}</div>
+      `;
+      nodeEl.appendChild(feedCard);
     }
 
     layer.appendChild(nodeEl);
@@ -425,6 +569,10 @@ function onPortClick(e, nodeId, portType, direction) {
   e.stopPropagation();
 
   if (direction === 'output') {
+    // SINGLE CONNECTION RULE: Output port can only connect to ONE target.
+    // Clear any existing connection originating from this output port
+    editorState.connections = editorState.connections.filter(c => !(c.fromNodeId === nodeId && c.fromPort === portType));
+
     // Start drawing cable
     const startCoords = getPortCoordinates(nodeId, portType);
     editorState.drawingCable = {
@@ -441,7 +589,8 @@ function onPortClick(e, nodeId, portType, direction) {
 
     // Prevent self-connection
     if (fromId !== nodeId) {
-      // Remove any existing incoming connection to this specific target port
+      // SINGLE CONNECTION RULE: Input port can only receive ONE incoming cable.
+      // Clear any existing connection arriving at this input port
       editorState.connections = editorState.connections.filter(c => !(c.toNodeId === nodeId && c.toPort === portType));
 
       editorState.connections.push({
@@ -477,9 +626,10 @@ function renderWires() {
     path.setAttribute('d', d);
 
     // Click cable to remove it
-    path.addEventListener('click', () => {
+    path.addEventListener('click', (e) => {
+      e.stopPropagation();
       editorState.connections.splice(idx, 1);
-      renderWires();
+      renderEditor();
     });
 
     svg.appendChild(path);

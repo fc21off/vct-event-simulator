@@ -152,8 +152,65 @@
 .sb-node.node-elimination {
   border-color: #ff2a5f;
   background: rgba(255, 42, 95, 0.15);
-  min-width: 120px;
+  min-width: 140px;
   text-align: center;
+}
+
+/* Feed Cards inside Nodes */
+.sb-node-feed-card {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  margin-top: 0.4rem;
+  text-align: center;
+  font-family: var(--font-heading);
+}
+
+.feed-team {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #bdb578;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.feed-vs {
+  font-size: 0.65rem;
+  font-weight: 900;
+  color: #777777;
+  margin: 0.15rem 0;
+  letter-spacing: 0.1em;
+}
+
+.feed-champ-title {
+  font-size: 0.65rem;
+  color: #bdb578;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.feed-champ-source {
+  font-size: 0.8rem;
+  color: #ffffff;
+  font-weight: 900;
+  margin-top: 0.2rem;
+}
+
+.feed-elim-title {
+  font-size: 0.65rem;
+  color: #ff2a5f;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.feed-elim-source {
+  font-size: 0.8rem;
+  color: #ece7e1;
+  font-weight: 900;
+  margin-top: 0.2rem;
 }
 
 .sb-node-header {
