@@ -2,46 +2,49 @@ import puppeteer from 'puppeteer';
 
 (async () => {
   try {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({
+      headless: 'new',
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
 
     page.on('console', msg => console.log('BROWSER LOG:', msg.type(), msg.text()));
-    page.on('pageerror', err => console.log('BROWSER ERROR:', err));
+    page.on('pageerror', err => console.log('BROWSER ERROR:', err.toString()));
 
     await page.goto('http://localhost:8080', { waitUntil: 'networkidle0' });
-    console.log('Navigated to http://localhost:8080');
+    console.log('Navigated to page');
 
-    // Click SANDBOX MODE button
     await page.click('#btn-menu-sandbox');
     await new Promise(r => setTimeout(r, 500));
 
-    // Click CREATE NEW EVENT card
-    const cards = await page.$$('.ts-team-card');
-    if (cards.length > 0) {
-      await cards[0].click();
+    const createCards = await page.$$('.ts-team-card');
+    if (createCards.length > 0) {
+      await createCards[0].click();
       await new Promise(r => setTimeout(r, 500));
     }
 
-    // Click OPEN BRACKET EDITOR button
     const startBtn = await page.$('#btn-sb-start-editor');
     if (startBtn) {
       await startBtn.click();
       await new Promise(r => setTimeout(r, 1000));
     }
 
-    const html = await page.evaluate(() => {
+    const res = await page.evaluate(() => {
       const editor = document.getElementById('screen-sandbox-editor');
+      const nodesLayer = document.getElementById('sb-nodes-layer');
       return {
-        editorClass: editor ? editor.className : 'null',
-        editorInnerHTML: editor ? editor.innerHTML : 'null',
-        viewport: document.querySelector('.sandbox-viewport') ? true : false
+        editorVisible: editor ? getComputedStyle(editor).display : 'none',
+        editorZIndex: editor ? getComputedStyle(editor).zIndex : 'none',
+        editorChildrenCount: editor ? editor.children.length : 0,
+        nodesCount: nodesLayer ? nodesLayer.children.length : 0,
+        htmlSnippet: editor ? editor.innerHTML.substring(0, 300) : ''
       };
     });
 
-    console.log('EVALUATION RESULT:', JSON.stringify(html, null, 2));
+    console.log('RESULT:', JSON.stringify(res, null, 2));
 
     await browser.close();
   } catch (err) {
-    console.error('Puppeteer test failed:', err);
+    console.error('PUPPETEER EXCEPTION:', err);
   }
 })();

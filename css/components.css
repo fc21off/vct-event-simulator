@@ -192,12 +192,14 @@
   padding: var(--space-xl);
   opacity: 0;
   visibility: hidden;
+  pointer-events: none;
   transition: all var(--transition-normal);
 }
 
 .modal-overlay.active {
   opacity: 1;
   visibility: visible;
+  pointer-events: auto;
 }
 
 .modal-content {

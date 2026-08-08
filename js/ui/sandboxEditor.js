@@ -53,7 +53,7 @@ export function initSandboxEditor(container, teamCount = 8) {
 
   // SVG Layer for Wires
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.className = 'sandbox-svg-layer';
+  svg.setAttribute('class', 'sandbox-svg-layer');
   svg.id = 'sb-svg-layer';
   canvasArea.appendChild(svg);
 
